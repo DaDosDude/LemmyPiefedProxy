@@ -1,3 +1,4 @@
 /.idea
 /cert.dev.crt
 /cert.dev.key
+*.tar.gz
