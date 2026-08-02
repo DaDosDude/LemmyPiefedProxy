@@ -102,3 +102,26 @@ func (receiver *CommentController) CreateComment(request *http.Request) (*http.R
 		},
 	}, nil
 }
+
+func (receiver *CommentController) LikeComment(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.CreateCommentLikeRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.LikeComment(&piefed.LikeCommentRequest{
+		CommentId: reqDto.CommentId,
+		Score:     reqDto.Score,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.GetCommentResponse{
+			CommentView:  converter.ConvertCommentView(resp.CommentView),
+			RecipientIds: []uint{},
+		},
+	}, nil
+}

@@ -95,3 +95,28 @@ func (receiver *PostController) MarkPostAsRead(request *http.Request) (*http.Res
 
 	return http.NotImplementedResponse(), nil
 }
+
+func (receiver *PostController) LikePost(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.CreatePostLikeRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.LikePost(&piefed.LikePostRequest{
+		PostId: reqDto.PostId,
+		Score:  reqDto.Score,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.GetPostResponse{
+			CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+			CrossPosts:    helper.MapSlice(resp.CrossPosts, converter.ConvertPostView),
+			Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorView),
+			PostView:      converter.ConvertPostView(resp.PostView),
+		},
+	}, nil
+}

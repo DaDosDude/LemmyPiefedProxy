@@ -26,3 +26,13 @@ func (receiver *Piefed) GetPost(request *piefed.GetPostRequest, headers http.Hea
 		headers,
 	)
 }
+
+func (receiver *Piefed) LikePost(request *piefed.LikePostRequest, headers http.Headers) (*piefedResponse.GetPostResponse, error) {
+	return defaultHandler[piefedResponse.GetPostResponse](
+		receiver,
+		"/post/like",
+		router.HttpMethodPost,
+		request,
+		headers,
+	)
+}
