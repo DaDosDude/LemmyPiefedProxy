@@ -56,15 +56,28 @@ sequenceDiagram
 - `POST /community/follow` (join/leave a community)
 - `GET /search`
 - `GET /user` (note: the optional `site` field on this response is not populated — it requires the same ActivityPub actor fetch `GET /site` uses, not yet wired in here)
+- `POST /user/block`
+- `POST /community/block`
+- `POST /pictrs/image` (image upload — deliberately outside `/api/v3`, since that's where mlmym/real Lemmy pict-rs actually sends uploads)
+- `GET /pictrs/image/{token}` (serves uploaded images by redirecting to Piefed's real file — see limitation below)
 
 ### Implemented but not yet verified against a live instance
 - `POST /comment/like` (voting) — same pattern as `/post/like`, which is confirmed working, but not independently tested
 
 ### Known gaps — not implemented
-- Image upload
-- Community/user blocking
-- Registration (returns an error page — Piefed's registration flow can't be mapped to Lemmy's)
-- Report count (returns an error page — same reason)
+- Registration (returns an error page — Piefed's own API has no working implementation
+  behind this route either; it's a stub that always returns `not_yet_implemented`)
+- Report count (same reason — Piefed's own source marks this "Stage 2", i.e. not built yet)
+- Password reset/change, TOTP, account deletion, email verification, admin tools, custom
+  emoji — all confirmed (by reading Piefed's actual source) to hit the same
+  `not_yet_implemented` stub on Piefed's side. These aren't things this proxy failed to
+  translate — there's nothing implemented on the Piefed end to translate to.
+
+### Known limitation — image thumbnails
+`/pictrs/image/{token}` redirects to Piefed's original, full-size image rather than
+resizing it. mlmym requests thumbnails via query params (`?format=jpg&thumbnail=96`)
+that only mean something to a real pict-rs server — Piefed doesn't understand them, so
+they're silently dropped. Images work, but always at full resolution.
 
 Note: `/post/mark_as_read` was previously listed here as "impossible to implement" — that
 was incorrect. Piefed's `/post/mark_as_read` endpoint exists and works; it's now implemented
