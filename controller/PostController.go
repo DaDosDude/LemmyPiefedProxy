@@ -88,12 +88,26 @@ func (receiver *PostController) GetPost(request *http.Request) (*http.Response, 
 }
 
 func (receiver *PostController) MarkPostAsRead(request *http.Request) (*http.Response, error) {
-	_, err := helper.ParseRequest[lemmy.MarkPostAsReadRequest](request)
+	reqDto, err := helper.ParseRequest[lemmy.MarkPostAsReadRequest](request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	return http.NotImplementedResponse(), nil
+	resp, err := receiver.piefed.MarkPostAsRead(&piefed.MarkPostAsReadRequest{
+		PostId:  reqDto.PostId,
+		PostIds: reqDto.PostIds,
+		Read:    reqDto.Read,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.SuccessResponse{
+			Success: resp.Success,
+		},
+	}, nil
 }
 
 func (receiver *PostController) LikePost(request *http.Request) (*http.Response, error) {

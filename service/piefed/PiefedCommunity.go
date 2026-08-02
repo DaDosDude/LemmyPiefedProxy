@@ -26,3 +26,13 @@ func (receiver *Piefed) GetCommunities(request *piefed.GetCommunitiesRequest, he
 		headers,
 	)
 }
+
+func (receiver *Piefed) FollowCommunity(request *piefed.FollowCommunityRequest, headers http.Headers) (*piefedResponse.CommunityResponse, error) {
+	return defaultHandler[piefedResponse.CommunityResponse](
+		receiver,
+		"/community/follow",
+		router.HttpMethodPost,
+		request,
+		headers,
+	)
+}

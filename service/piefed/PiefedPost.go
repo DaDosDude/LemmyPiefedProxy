@@ -36,3 +36,13 @@ func (receiver *Piefed) LikePost(request *piefed.LikePostRequest, headers http.H
 		headers,
 	)
 }
+
+func (receiver *Piefed) MarkPostAsRead(request *piefed.MarkPostAsReadRequest, headers http.Headers) (*piefedResponse.SuccessResponse, error) {
+	return defaultHandler[piefedResponse.SuccessResponse](
+		receiver,
+		"/post/mark_as_read",
+		router.HttpMethodPost,
+		request,
+		headers,
+	)
+}

@@ -74,3 +74,26 @@ func (receiver *CommunityController) GetCommunities(request *http.Request) (*htt
 		},
 	}, nil
 }
+
+func (receiver *CommunityController) FollowCommunity(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.FollowCommunityRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.FollowCommunity(&piefed.FollowCommunityRequest{
+		CommunityId: reqDto.CommunityId,
+		Follow:      reqDto.Follow,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.CommunityResponse{
+			CommunityView:       converter.ConvertCommunityView(resp.CommunityView),
+			DiscussionLanguages: resp.DiscussionLanguages,
+		},
+	}, nil
+}
