@@ -14,6 +14,7 @@ func init() {
 	siteController := controller.NewSiteController(piefed, activityPub, simulateLemmy)
 	postController := controller.NewPostController(piefed)
 	commentController := controller.NewCommentController(piefed)
+	communityController := controller.NewCommunityController(piefed)
 
 	// implemented
 	AppRouter.AddRoute(newRoute("/user/login", router.HttpMethodPost, userController.Login))
@@ -24,6 +25,8 @@ func init() {
 	AppRouter.AddRoute(newRoute("/comment/list", router.HttpMethodGet, commentController.GetComments))
 	AppRouter.AddRoute(newRoute("/comment", router.HttpMethodGet, commentController.GetComment))
 	AppRouter.AddRoute(newRoute("/comment", router.HttpMethodPost, commentController.CreateComment))
+	AppRouter.AddRoute(newRoute("/community", router.HttpMethodGet, communityController.GetCommunity))
+	AppRouter.AddRoute(newRoute("/community/list", router.HttpMethodGet, communityController.GetCommunities))
 
 	// impossible to implement, error pages only
 	AppRouter.AddRoute(newRoute("/user/register", router.HttpMethodPost, userController.Register))

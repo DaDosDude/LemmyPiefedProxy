@@ -13,9 +13,9 @@ func ConvertCommunityAggregates(in piefed.CommunityAggregates) lemmy.CommunityAg
 		Published:           in.Published,
 		Subscribers:         in.SubscriptionsCount,
 		SubscribersLocal:    0,
-		UsersActiveDay:      0,
-		UsersActiveHalfYear: 0,
-		UsersActiveMonth:    0,
-		UsersActiveWeek:     0,
+		UsersActiveDay:      in.ActiveDaily,
+		UsersActiveHalfYear: in.ActiveSixMonthly,
+		UsersActiveMonth:    in.ActiveMonthly,
+		UsersActiveWeek:     in.ActiveWeekly,
 	}
 }
