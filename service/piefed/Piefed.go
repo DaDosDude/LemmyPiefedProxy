@@ -97,7 +97,18 @@ func (receiver *Piefed) sendRequest(
 	}
 
 	req.Header = helper.MapMap(helper.MapFilter(headers, func(value, key string) bool {
-		return strings.ToLower(key) != "content-length"
+		lowerKey := strings.ToLower(key)
+		// Content-Length is recalculated by the Go HTTP client for this
+		// request's own body, so a stale client-supplied value must not
+		// be forwarded. Accept-Encoding must not be forwarded either —
+		// if a client-set value is present, Go's transport disables its
+		// own automatic gzip request/decompress handling, and a gzip
+		// response body then gets handed to json.Unmarshal as raw bytes
+		// (visible as "invalid character '\x1f'..." — 0x1f is gzip's
+		// magic byte). Leaving this header unset lets Go manage
+		// compression transparently, which is what defaultHandler's
+		// plain json.Unmarshal on the response body assumes.
+		return lowerKey != "content-length" && lowerKey != "accept-encoding"
 	}), func(value, key string) []string {
 		return []string{value}
 	})
