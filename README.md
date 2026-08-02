@@ -94,10 +94,11 @@ docker run -d \
 
 ## Deployment tutorial
 
-This walks through a full, real deployment: the proxy running behind
-Caddy, paired with mlmym as the actual frontend users visit, with
-automatic image updates. This is the exact setup this project was
-tested against in production.
+This walks through a full, real deployment: the proxy running behind a
+reverse proxy, paired with mlmym as the actual frontend users visit, with
+automatic image updates. This is the exact setup this project was tested
+against in production, using Caddy specifically, though the same steps
+apply with Nginx or any other reverse proxy.
 
 ### 1. Decide on a domain
 
@@ -171,10 +172,61 @@ instead, so the connection never actually leaves the server. Caddy still
 sees the same hostname and routes it the same way, so nothing about the
 routing logic changes, only the network path gets shorter.
 
-### 3. Configure Caddy
+### 3. Configure your reverse proxy
 
-Add the proxy's routes to your frontend subdomain's block, using `handle`
-so they take priority over the frontend's own catch-all reverse proxy:
+Whatever reverse proxy sits in front of your frontend subdomain, the
+requirement is the same: send `/api/v3/*` and `/pictrs/image*` to the
+proxy container, and send everything else to the frontend container.
+Piefed's own documentation recommends Nginx, so that is likely what you
+already have running, but the same idea applies to Caddy, Traefik, or
+anything else. Examples for both Nginx and Caddy are below.
+
+#### Nginx
+
+Add this to the server block for your frontend subdomain, above the
+existing `location /` block that proxies to the frontend, since Nginx
+matches locations by specificity and these need to take priority:
+
+```
+location /api/v3/ {
+        proxy_pass http://127.0.0.1:8050;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+}
+
+location /pictrs/image {
+        proxy_pass http://127.0.0.1:8050;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+}
+
+location / {
+        proxy_pass http://127.0.0.1:8051;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+}
+```
+
+Adjust the ports to match however you published the containers. Test
+the configuration before reloading:
+
+```
+nginx -t
+```
+
+If that reports the configuration is valid, reload:
+
+```
+systemctl reload nginx
+```
+
+#### Caddy
+
+Add this to your frontend subdomain's block, using `handle` so these
+routes take priority over the frontend's own catch-all reverse proxy:
 
 ```
 old.yourdomain.com {
@@ -213,9 +265,10 @@ If that reports a valid configuration, reload:
 systemctl reload caddy
 ```
 
-If your Caddy runs inside Docker rather than as a host service, reload it
-with `docker exec <caddy_container> caddy reload --config
-/etc/caddy/Caddyfile` instead.
+If your reverse proxy runs inside Docker rather than as a host service,
+reload it through its container instead, for example `docker exec
+<container> caddy reload --config /etc/caddy/Caddyfile` or `docker exec
+<container> nginx -s reload`.
 
 ### 4. Verify it
 
