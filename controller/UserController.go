@@ -1,10 +1,13 @@
 package controller
 
 import (
+	lemmyModel "LemmyPiefedApi/dto/model/lemmy"
+	piefedModel "LemmyPiefedApi/dto/model/piefed"
 	"LemmyPiefedApi/dto/request/lemmy"
 	"LemmyPiefedApi/dto/request/piefed"
 	lemmyResponse "LemmyPiefedApi/dto/response/lemmy"
 	"LemmyPiefedApi/helper"
+	"LemmyPiefedApi/helper/converter"
 	"LemmyPiefedApi/http"
 	pfService "LemmyPiefedApi/service/piefed"
 	goHttp "net/http"
@@ -80,6 +83,37 @@ func (receiver *UserController) GetReportCount(request *http.Request) (*http.Res
 			CommunityId:           reqDto.CommunityId,
 			PostReports:           0,
 			PrivateMessageReports: nil,
+		},
+	}, nil
+}
+
+func (receiver *UserController) GetUser(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequestQuery[lemmy.GetUserRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.GetUser(&piefed.GetUserRequest{
+		PersonId:  reqDto.PersonId,
+		Username:  reqDto.Username,
+		Sort: helper.SafeDereference(reqDto.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
+			return helper.ToPointer(converter.ReverseConvertSortType(in))
+		}),
+		Page:      reqDto.Page,
+		Limit:     reqDto.Limit,
+		SavedOnly: reqDto.SavedOnly,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.GetUserResponse{
+			Comments:   helper.MapSlice(resp.Comments, converter.ConvertCommentView),
+			Moderates:  helper.MapSlice(resp.Moderates, converter.ConvertCommunityModeratorView),
+			PersonView: converter.ConvertPersonView(resp.PersonView),
+			Posts:      helper.MapSlice(resp.Posts, converter.ConvertPostView),
 		},
 	}, nil
 }

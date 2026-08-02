@@ -26,3 +26,13 @@ func (receiver *Piefed) GetUnreadCount(headers appHttp.Headers) (*piefedResponse
 		headers,
 	)
 }
+
+func (receiver *Piefed) GetUser(request *piefedRequest.GetUserRequest, headers appHttp.Headers) (*piefedResponse.GetUserResponse, error) {
+	return defaultHandler[piefedResponse.GetUserResponse](
+		receiver,
+		"/user",
+		router.HttpMethodGet,
+		request,
+		headers,
+	)
+}
