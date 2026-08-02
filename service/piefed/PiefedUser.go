@@ -36,3 +36,13 @@ func (receiver *Piefed) GetUser(request *piefedRequest.GetUserRequest, headers a
 		headers,
 	)
 }
+
+func (receiver *Piefed) BlockPerson(request *piefedRequest.BlockPersonRequest, headers appHttp.Headers) (*piefedResponse.BlockPersonResponse, error) {
+	return defaultHandler[piefedResponse.BlockPersonResponse](
+		receiver,
+		"/user/block",
+		router.HttpMethodPost,
+		request,
+		headers,
+	)
+}

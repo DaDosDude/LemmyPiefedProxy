@@ -21,6 +21,7 @@ func init() {
 	AppRouter.AddRoute(newRoute("/user/login", router.HttpMethodPost, userController.Login))
 	AppRouter.AddRoute(newRoute("/user/unread_count", router.HttpMethodGet, userController.GetUnreadCount))
 	AppRouter.AddRoute(newRoute("/user", router.HttpMethodGet, userController.GetUser))
+	AppRouter.AddRoute(newRoute("/user/block", router.HttpMethodPost, userController.BlockPerson))
 	AppRouter.AddRoute(newRoute("/site", router.HttpMethodGet, siteController.Site))
 	AppRouter.AddRoute(newRoute("/post/list", router.HttpMethodGet, postController.GetPosts))
 	AppRouter.AddRoute(newRoute("/post", router.HttpMethodGet, postController.GetPost))
@@ -33,6 +34,7 @@ func init() {
 	AppRouter.AddRoute(newRoute("/community", router.HttpMethodGet, communityController.GetCommunity))
 	AppRouter.AddRoute(newRoute("/community/list", router.HttpMethodGet, communityController.GetCommunities))
 	AppRouter.AddRoute(newRoute("/community/follow", router.HttpMethodPost, communityController.FollowCommunity))
+	AppRouter.AddRoute(newRoute("/community/block", router.HttpMethodPost, communityController.BlockCommunity))
 	AppRouter.AddRoute(newRoute("/search", router.HttpMethodGet, searchController.Search))
 
 	// impossible to implement, error pages only

@@ -117,3 +117,26 @@ func (receiver *UserController) GetUser(request *http.Request) (*http.Response, 
 		},
 	}, nil
 }
+
+func (receiver *UserController) BlockPerson(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.BlockPersonRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.BlockPerson(&piefed.BlockPersonRequest{
+		PersonId: reqDto.PersonId,
+		Block:    reqDto.Block,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.BlockPersonResponse{
+			Blocked:    resp.Blocked,
+			PersonView: converter.ConvertPersonView(resp.PersonView),
+		},
+	}, nil
+}

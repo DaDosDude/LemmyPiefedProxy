@@ -97,3 +97,26 @@ func (receiver *CommunityController) FollowCommunity(request *http.Request) (*ht
 		},
 	}, nil
 }
+
+func (receiver *CommunityController) BlockCommunity(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.BlockCommunityRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.BlockCommunity(&piefed.BlockCommunityRequest{
+		CommunityId: reqDto.CommunityId,
+		Block:       reqDto.Block,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.BlockCommunityResponse{
+			Blocked:       resp.Blocked,
+			CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+		},
+	}, nil
+}

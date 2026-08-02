@@ -36,3 +36,13 @@ func (receiver *Piefed) FollowCommunity(request *piefed.FollowCommunityRequest, 
 		headers,
 	)
 }
+
+func (receiver *Piefed) BlockCommunity(request *piefed.BlockCommunityRequest, headers http.Headers) (*piefedResponse.BlockCommunityResponse, error) {
+	return defaultHandler[piefedResponse.BlockCommunityResponse](
+		receiver,
+		"/community/block",
+		router.HttpMethodPost,
+		request,
+		headers,
+	)
+}
