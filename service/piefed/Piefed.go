@@ -8,11 +8,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	goHttp "net/http"
 	"strings"
 )
 
 const applicationJson = "application/json"
+
+// truncateForLog caps how much of a response body gets logged, since some
+// error bodies (an HTML error page, for instance) could be large — we only
+// need enough to diagnose what went wrong, not the whole thing.
+func truncateForLog(body []byte) string {
+	const maxLen = 500
+	if len(body) > maxLen {
+		return string(body[:maxLen]) + "... (truncated)"
+	}
+	return string(body)
+}
 
 func defaultHandler[TResponse any](
 	piefed *Piefed,
@@ -39,14 +51,46 @@ func defaultHandler[TResponse any](
 
 	if resp.StatusCode != goHttp.StatusOK {
 		var errorResponse *piefedResponse.ErrorResponse
-		_ = json.Unmarshal(body, &errorResponse)
+		if err := json.Unmarshal(body, &errorResponse); err != nil || errorResponse == nil {
+			// Piefed's error body wasn't a JSON object we could parse
+			// (empty body, plain text, an HTML error page, etc.) — build
+			// a fallback instead of dereferencing a nil pointer, which
+			// previously panicked here and killed the whole request
+			// mid-flight (the client would see the connection die rather
+			// than get any error response at all).
+			errorResponse = &piefedResponse.ErrorResponse{
+				ErrorCode: fmt.Sprintf("unparseable_error_response (http %d)", resp.StatusCode),
+			}
+		}
 		errorResponse.StatusCode = resp.StatusCode
+
+		// Log every non-200 with enough detail to diagnose it after the
+		// fact — previously these passed through silently (the client just
+		// saw a generic error), which made intermittent failures like this
+		// unreproducible from server-side logs alone. resp.Request.URL
+		// includes the actual query string that was sent, which the bare
+		// urlPath argument doesn't — that's the difference between
+		// guessing which parameter was invalid and knowing immediately.
+		log.Printf(
+			"piefed error response: %s %s -> HTTP %d, error_code=%q, body=%s",
+			httpMethod, resp.Request.URL.String(), resp.StatusCode, errorResponse.ErrorCode, truncateForLog(body),
+		)
 
 		return nil, errorResponse
 	}
 
 	var response TResponse
 	if err := json.Unmarshal(body, &response); err != nil {
+		// A 200 from Piefed whose body doesn't match the Go struct we
+		// expected — this is exactly the class of bug the negative
+		// downvotes-count issue was (a uint field fed a value Piefed's
+		// data can actually produce). Logging the raw body here means the
+		// next occurrence of a shape mismatch is diagnosable immediately
+		// instead of requiring another round of manual reproduction.
+		log.Printf(
+			"piefed response unmarshal failed: %s %s -> %v, body=%s",
+			httpMethod, urlPath, err, truncateForLog(body),
+		)
 		return nil, err
 	}
 

@@ -57,7 +57,7 @@ func (receiver *CommunityController) GetCommunities(request *http.Request) (*htt
 			return helper.ToPointer(converter.ReverseConvertListingType(in))
 		}),
 		Sort: helper.SafeDereference(reqDto.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
-			return helper.ToPointer(converter.ReverseConvertSortType(in))
+			return helper.ToPointer(converter.ReverseConvertCommunitySortType(in))
 		}),
 		ShowNsfw: reqDto.ShowNsfw,
 		Page:     reqDto.Page,
