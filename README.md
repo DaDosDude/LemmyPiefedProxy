@@ -53,6 +53,7 @@ sequenceDiagram
 - `GET /community`
 - `GET /community/list`
 - `GET /search`
+- `GET /user` (note: the optional `site` field on this response is not populated — it requires the same ActivityPub actor fetch `GET /site` uses, not yet wired in here)
 
 ### Implemented but not yet verified against a live instance
 - `POST /comment/like` (voting) — same pattern as `/post/like`, which is confirmed working, but not independently tested
@@ -60,7 +61,6 @@ sequenceDiagram
 ### Known gaps — not implemented
 - Image upload
 - Mark post as read
-- User/person profile pages
 - Community subscribe / unsubscribe
 - User or content blocking
 - Registration (returns an error page — Piefed's registration flow can't be mapped to Lemmy's)
