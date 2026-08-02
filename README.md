@@ -47,11 +47,13 @@ sequenceDiagram
 - `GET /post/list`
 - `GET /post`
 - `POST /post/like` (voting)
+- `POST /post/mark_as_read`
 - `GET /comment/list`
 - `GET /comment`
 - `POST /comment`
 - `GET /community`
 - `GET /community/list`
+- `POST /community/follow` (join/leave a community)
 - `GET /search`
 - `GET /user` (note: the optional `site` field on this response is not populated — it requires the same ActivityPub actor fetch `GET /site` uses, not yet wired in here)
 
@@ -60,8 +62,10 @@ sequenceDiagram
 
 ### Known gaps — not implemented
 - Image upload
-- Mark post as read
-- Community subscribe / unsubscribe
-- User or content blocking
+- Community/user blocking
 - Registration (returns an error page — Piefed's registration flow can't be mapped to Lemmy's)
 - Report count (returns an error page — same reason)
+
+Note: `/post/mark_as_read` was previously listed here as "impossible to implement" — that
+was incorrect. Piefed's `/post/mark_as_read` endpoint exists and works; it's now implemented
+and tested above.
