@@ -23,6 +23,7 @@ func init() {
 	AppRouter.AddRoute(newRoute("/user/unread_count", router.HttpMethodGet, userController.GetUnreadCount))
 	AppRouter.AddRoute(newRoute("/user", router.HttpMethodGet, userController.GetUser))
 	AppRouter.AddRoute(newRoute("/user/block", router.HttpMethodPost, userController.BlockPerson))
+	AppRouter.AddRoute(newRoute("/user/save_user_settings", router.HttpMethodPut, userController.SaveUserSettings))
 	AppRouter.AddRoute(newRoute("/site", router.HttpMethodGet, siteController.Site))
 	AppRouter.AddRoute(newRoute("/post/list", router.HttpMethodGet, postController.GetPosts))
 	AppRouter.AddRoute(newRoute("/post", router.HttpMethodGet, postController.GetPost))

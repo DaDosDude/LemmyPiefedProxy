@@ -140,3 +140,37 @@ func (receiver *UserController) BlockPerson(request *http.Request) (*http.Respon
 		},
 	}, nil
 }
+
+// SaveUserSettings only forwards the four fields Piefed's own
+// save_user_settings endpoint actually supports (ShowNsfw, DefaultSortType,
+// DefaultCommentSortType, ShowReadPosts). Everything else mlmym sends
+// (Theme, InfiniteScrollEnabled, ShowAvatars, etc.) is accepted here — so
+// the save doesn't fail outright — but has no Piefed field to go to and is
+// silently dropped. InfiniteScrollEnabled specifically can never persist
+// server-side on a Piefed-backed instance regardless of what this proxy
+// does, since Piefed has no field for it at all.
+func (receiver *UserController) SaveUserSettings(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.SaveUserSettingsRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	_, err = receiver.piefed.SaveUserSettings(&piefed.SaveUserSettingsRequest{
+		ShowNsfw: reqDto.ShowNsfw,
+		DefaultSortType: helper.SafeDereference(reqDto.DefaultSortType, func(in string) *string {
+			return helper.ToPointer(converter.ClampDefaultSortType(in))
+		}),
+		DefaultCommentSortType: helper.SafeDereference(reqDto.DefaultCommentSortType, func(in string) *string {
+			return helper.ToPointer(converter.ClampDefaultCommentSortType(in))
+		}),
+		ShowReadPosts: reqDto.ShowReadPosts,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body:       &lemmyResponse.SaveUserSettingsResponse{},
+	}, nil
+}

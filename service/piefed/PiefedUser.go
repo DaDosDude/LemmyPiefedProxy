@@ -46,3 +46,13 @@ func (receiver *Piefed) BlockPerson(request *piefedRequest.BlockPersonRequest, h
 		headers,
 	)
 }
+
+func (receiver *Piefed) SaveUserSettings(request *piefedRequest.SaveUserSettingsRequest, headers appHttp.Headers) (*piefedResponse.SaveUserSettingsResponse, error) {
+	return defaultHandler[piefedResponse.SaveUserSettingsResponse](
+		receiver,
+		"/user/save_user_settings",
+		router.HttpMethodPut,
+		request,
+		headers,
+	)
+}
