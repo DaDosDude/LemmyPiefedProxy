@@ -6,6 +6,7 @@ import (
 	"LemmyPiefedApi/helper"
 	appHttp "LemmyPiefedApi/http"
 	"LemmyPiefedApi/router"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -48,6 +49,28 @@ func main() {
 		query := request.URL.Query()
 		if query != nil {
 			appRequest.QueryParams = helper.SingularizeMapValue(query)
+		}
+
+		// Lemmy 0.18.x and earlier clients send the auth token as an
+		// "auth" field in the JSON body (POST/PUT) or as an "auth" query
+		// parameter (GET), rather than an Authorization: Bearer header —
+		// the convention Lemmy adopted from 0.19 onward and the only one
+		// this proxy otherwise recognizes. If no Authorization header is
+		// already present, check both older-style locations and
+		// synthesize the header Piefed (and the rest of this proxy)
+		// expects, so older Lemmy-API clients aren't silently treated as
+		// unauthenticated.
+		if _, hasAuth := appRequest.Headers["Authorization"]; !hasAuth {
+			if token, ok := appRequest.QueryParams["auth"]; ok && token != "" {
+				appRequest.Headers["Authorization"] = "Bearer " + token
+			} else if len(body) > 0 {
+				var bodyFields map[string]any
+				if jsonErr := json.Unmarshal(body, &bodyFields); jsonErr == nil {
+					if token, ok := bodyFields["auth"].(string); ok && token != "" {
+						appRequest.Headers["Authorization"] = "Bearer " + token
+					}
+				}
+			}
 		}
 
 		var result *appHttp.Response
