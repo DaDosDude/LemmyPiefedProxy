@@ -4,7 +4,10 @@ This proxy sits in front of a Piefed instance and translates requests and
 responses between Piefed's native API and Lemmy's API shape. The practical
 result: any frontend or app built for Lemmy (mlmym, Alexandrite, Voyager,
 official Lemmy apps, and so on) can talk to a Piefed server through this
-proxy without knowing it isn't talking to real Lemmy.
+proxy without knowing it isn't talking to real Lemmy. This includes older
+clients still built against Lemmy 0.18.x's authentication convention, not
+just the `Authorization: Bearer` header used from Lemmy 0.19 onward — see
+Authentication compatibility below.
 
 Piefed's own API already overlaps with Lemmy's API in many places by
 design, which is what makes this possible without reimplementing Piefed
@@ -43,6 +46,26 @@ Image uploads are handled separately at `/pictrs/image`, since that is
 where Lemmy clients (and real Lemmy's pict-rs image server) send them,
 outside the `/api/v3` prefix. See the image upload section below for how
 that works and its one real limitation.
+
+## Authentication compatibility
+
+Lemmy changed how clients authenticate starting in 0.19: the token moved
+from an `auth` field in the request (the JSON body for POST/PUT, a query
+parameter for GET) to an `Authorization: Bearer` header. This proxy
+supports both. If a request arrives with no `Authorization` header, it
+checks for an `auth` query parameter, then for an `auth` field in the
+JSON body, and synthesizes the header Piefed (and the rest of this
+proxy) expects before the request is routed anywhere.
+
+This means older Lemmy-API clients built against the pre-0.19 convention
+work through this proxy the same as current ones, with no configuration
+needed on either side. The check happens once, centrally, before a
+request reaches any endpoint's own logic, so it applies to every route
+this proxy implements rather than needing to be handled per endpoint.
+Verified against a live Piefed instance for both the query-parameter form
+(`GET /user/unread_count?auth=...`) and the body-field form
+(`POST /comment/like` with `"auth"` in the JSON body) — both correctly
+authenticated as the same real account a header-based request would.
 
 ## Requirements
 
