@@ -370,12 +370,10 @@ full list.
   send uploads)
 - `GET /pictrs/image/{token}` (serves uploaded images by redirecting to
   Piefed's real file, see the limitation noted below)
-
-### Implemented but not independently verified against a live instance
-
-- `POST /comment/like` (voting). Same code pattern as `/post/like`, which
-  is confirmed working, but this specific route has not been tested on
-  its own.
+- `POST /comment/like` (voting) — verified against a live instance with a
+  real account: score incremented correctly, `my_vote` reflected the
+  vote, and repeating the same vote correctly toggled it back off
+  (Piefed's own undo behavior, not a bug)
 
 ### Known gaps, not implemented
 
