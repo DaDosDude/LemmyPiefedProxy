@@ -374,6 +374,12 @@ full list.
   real account: score incremented correctly, `my_vote` reflected the
   vote, and repeating the same vote correctly toggled it back off
   (Piefed's own undo behavior, not a bug)
+- `PUT /user/save_user_settings` — verified against a live instance: of
+  the full field set Lemmy clients send, only four have a real Piefed
+  equivalent (`show_nsfw`, `default_sort_type`, `default_comment_sort_type`,
+  `show_read_posts`) and are forwarded; the rest are accepted so the save
+  does not fail outright, then silently dropped, see the limitation noted
+  below
 
 ### Known gaps, not implemented
 
@@ -406,6 +412,34 @@ client, particularly on mobile browsers. Reducing image weight with your
 frontend's own settings, such as mlmym's `COLLAPSE_MEDIA`, is a
 reasonable mitigation until this project implements real server side
 thumbnail generation, which it currently does not.
+
+### Known limitation: unsupported user settings fields are silently dropped
+
+Lemmy's `save_user_settings` accepts a much larger set of fields than
+Piefed's own equivalent endpoint actually supports (confirmed directly
+from Piefed's schema, which notes in its own source: "not all settings
+implemented yet, nor all choices for settings"). Rather than reject a
+save outright because it contains a field Piefed cannot store, this
+proxy accepts the full Lemmy-shaped request, forwards only the fields
+Piefed genuinely supports, and quietly drops the rest.
+
+This was a deliberate choice, not an oversight: before this existed,
+saving *any* setting through a Lemmy client failed outright, since this
+endpoint was not implemented at all, and every save request errored.
+Treating unsupported fields as no-ops instead of hard failures means the
+fields Piefed does support (NSFW visibility, default sort, comment sort,
+show read posts) now save correctly, at the cost of the unsupported ones
+silently not persisting.
+
+One field is worth calling out specifically: mlmym's "endless scrolling"
+setting has no Piefed equivalent at all, so it can never be saved
+server-side through this proxy. Because of how mlmym's own frontend
+works, this shows up as a purely cosmetic issue rather than a functional
+one: the checkbox's visual state is driven by a server-side value that
+can get stuck, but the actual behavior (whether scrolling triggers more
+requests) is controlled separately by the browser's own local storage,
+which does update correctly on save. The setting behaves as intended;
+only the checkbox's displayed state can be stale after a reload.
 
 ## Troubleshooting
 
