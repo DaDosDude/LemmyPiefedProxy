@@ -46,3 +46,23 @@ func (receiver *Piefed) MarkPostAsRead(request *piefed.MarkPostAsReadRequest, he
 		headers,
 	)
 }
+
+func (receiver *Piefed) CreatePost(request *piefed.CreatePostRequest, headers http.Headers) (*piefedResponse.GetPostResponse, error) {
+	return defaultHandler[piefedResponse.GetPostResponse](
+		receiver,
+		"/post",
+		router.HttpMethodPost,
+		request,
+		headers,
+	)
+}
+
+func (receiver *Piefed) EditPost(request *piefed.EditPostRequest, headers http.Headers) (*piefedResponse.GetPostResponse, error) {
+	return defaultHandler[piefedResponse.GetPostResponse](
+		receiver,
+		"/post",
+		router.HttpMethodPut,
+		request,
+		headers,
+	)
+}

@@ -1,0 +1,10 @@
+package piefed
+
+type EditPostRequest struct {
+	PostId     uint    `json:"post_id" validate:"required"`
+	Title      *string `json:"title,omitempty"`
+	Body       *string `json:"body,omitempty"`
+	Url        *string `json:"url,omitempty"`
+	Nsfw       *bool   `json:"nsfw,omitempty"`
+	LanguageId *uint   `json:"language_id,omitempty"`
+}

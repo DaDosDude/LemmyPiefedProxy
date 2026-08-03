@@ -123,6 +123,66 @@ func (receiver *PostController) MarkPostAsRead(request *http.Request) (*http.Res
 	}, nil
 }
 
+// CreatePost maps Lemmy's Name field to Piefed's Title — same content,
+// different field name. Honeypot has no Piefed equivalent and is dropped.
+func (receiver *PostController) CreatePost(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.CreatePostRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.CreatePost(&piefed.CreatePostRequest{
+		Title:       reqDto.Name,
+		CommunityId: reqDto.CommunityId,
+		Body:        reqDto.Body,
+		Url:         reqDto.Url,
+		Nsfw:        reqDto.Nsfw,
+		LanguageId:  reqDto.LanguageId,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.GetPostResponse{
+			CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+			CrossPosts:    helper.MapSlice(resp.CrossPosts, converter.ConvertPostView),
+			Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorView),
+			PostView:      converter.ConvertPostView(resp.PostView),
+		},
+	}, nil
+}
+
+func (receiver *PostController) EditPost(request *http.Request) (*http.Response, error) {
+	reqDto, err := helper.ParseRequest[lemmy.EditPostRequest](request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.piefed.EditPost(&piefed.EditPostRequest{
+		PostId:     reqDto.PostId,
+		Title:      reqDto.Name,
+		Body:       reqDto.Body,
+		Url:        reqDto.Url,
+		Nsfw:       reqDto.Nsfw,
+		LanguageId: reqDto.LanguageId,
+	}, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{
+		StatusCode: goHttp.StatusOK,
+		Body: &lemmyResponse.GetPostResponse{
+			CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+			CrossPosts:    helper.MapSlice(resp.CrossPosts, converter.ConvertPostView),
+			Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorView),
+			PostView:      converter.ConvertPostView(resp.PostView),
+		},
+	}, nil
+}
+
 func (receiver *PostController) LikePost(request *http.Request) (*http.Response, error) {
 	reqDto, err := helper.ParseRequest[lemmy.CreatePostLikeRequest](request)
 	if err != nil {

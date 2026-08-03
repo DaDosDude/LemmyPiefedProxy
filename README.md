@@ -351,6 +351,8 @@ full list.
 - `GET /site`
 - `GET /post/list`
 - `GET /post`
+- `POST /post` (create post)
+- `PUT /post` (edit post)
 - `POST /post/like` (voting)
 - `POST /post/mark_as_read`
 - `GET /comment/list`

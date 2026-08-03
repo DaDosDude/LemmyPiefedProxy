@@ -29,6 +29,8 @@ func init() {
 	AppRouter.AddRoute(newRoute("/post", router.HttpMethodGet, postController.GetPost))
 	AppRouter.AddRoute(newRoute("/post/like", router.HttpMethodPost, postController.LikePost))
 	AppRouter.AddRoute(newRoute("/post/mark_as_read", router.HttpMethodPost, postController.MarkPostAsRead))
+	AppRouter.AddRoute(newRoute("/post", router.HttpMethodPost, postController.CreatePost))
+	AppRouter.AddRoute(newRoute("/post", router.HttpMethodPut, postController.EditPost))
 	AppRouter.AddRoute(newRoute("/comment/list", router.HttpMethodGet, commentController.GetComments))
 	AppRouter.AddRoute(newRoute("/comment", router.HttpMethodGet, commentController.GetComment))
 	AppRouter.AddRoute(newRoute("/comment", router.HttpMethodPost, commentController.CreateComment))
