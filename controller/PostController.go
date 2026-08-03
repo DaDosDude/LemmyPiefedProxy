@@ -35,8 +35,21 @@ func (receiver *PostController) GetPosts(request *http.Request) (*http.Response,
 		), nil
 	}
 
+	// Piefed's /post/list ignores community_id/community_name entirely when
+	// type_ is also set to Subscribed (confirmed directly: sending both
+	// returns the full subscribed feed, not the requested community's
+	// posts — a real Piefed backend quirk, not a translation gap here).
+	// A community-scoped request is unambiguous on its own; the listing
+	// type serves no purpose once a specific community is named, so it's
+	// dropped whenever either community field is present rather than
+	// risking Piefed silently discarding the more specific filter.
+	isCommunityScoped := reqDto.CommunityId != nil || reqDto.CommunityName != nil
+
 	resp, err := receiver.piefed.GetPosts(&piefed.GetPostsRequest{
 		Type: helper.SafeDereference(reqDto.Type, func(in lemmyModel.ListingType) *piefedModel.ListingType {
+			if isCommunityScoped {
+				return nil
+			}
 			return helper.ToPointer(converter.ReverseConvertListingType(in))
 		}),
 		Sort: helper.SafeDereference(reqDto.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
