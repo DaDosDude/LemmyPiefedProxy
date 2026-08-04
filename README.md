@@ -1,19 +1,27 @@
 # LemmyBeProxy
 
-A Lemmy-API-compatible proxy with a pluggable backend. It sits in front of
-either a Piefed instance or a real Lemmy instance and speaks Lemmy's API
-shape to whatever's in front of it, regardless of which backend is
-actually behind it. The practical result: any frontend or app built for
-Lemmy (mlmym, Alexandrite, Voyager, official Lemmy apps, and so on) can
-talk to this proxy without knowing (or caring) what's actually running on
-the other side. This includes older clients still built against Lemmy
-0.18.x's authentication convention, not just the `Authorization: Bearer`
-header used from Lemmy 0.19 onward — see Authentication compatibility
-below.
+A simple proxy that acts as a compatibility layer for Lemmy apps against Piefed and newer versions of Lemmy.
+
+It sits in front of a configurable backend — a Piefed instance or a real
+Lemmy instance — and speaks Lemmy's API shape to whatever's talking to
+it, regardless of what's actually running on the other side. The
+practical result: any frontend or app built for Lemmy (mlmym,
+Alexandrite, Voyager, official Lemmy apps, and so on) can talk to this
+proxy without knowing or caring what's actually behind it. This includes
+older clients still built against Lemmy 0.18.x's authentication
+convention, not just the `Authorization: Bearer` header used from Lemmy
+0.19 onward — see Authentication compatibility below.
 
 This proxy takes no default position on which backend you're running —
-`BACKEND_TYPE` and `BACKEND_INSTANCE` are both required, with no fallback.
-See Backend configuration below.
+`BACKEND_TYPE` and `BACKEND_INSTANCE` are both required, with no
+fallback. See Backend configuration below.
+
+The longer-term goal is a genuine compatibility layer across Lemmy API
+generations, not just across Piefed and Lemmy — letting older Lemmy
+clients keep working against newer backends (including a future Lemmy
+1.x), and vice versa, rather than breaking every time either side moves
+forward. That work is ongoing; see Backend configuration for where it
+currently stands.
 
 Piefed's own API already overlaps with Lemmy's API in many places by
 design, which is what makes Piefed support possible without
@@ -31,25 +39,27 @@ modeled on Lemmy's real API, so a Lemmy backend is close to a passthrough.
 sequenceDiagram
     actor User
     participant Client as Lemmy client
-    participant Proxy as Lemmy -> Piefed proxy
-    participant Piefed as Piefed server
+    participant Proxy as LemmyBeProxy
+    participant Backend as Configured backend
 
     User->>Client: Visit a page using a Lemmy client
     Client->>Proxy: Send request to proxy
     activate Proxy
-    Proxy->>Piefed: Transform Lemmy request to Piefed request
-    activate Piefed
-    Piefed->>Proxy: Return Piefed response
-    deactivate Piefed
-    Proxy->>Client: Transform Piefed response to Lemmy response
+    Proxy->>Backend: Transform Lemmy request to backend request
+    activate Backend
+    Backend->>Proxy: Return backend response
+    deactivate Backend
+    Proxy->>Client: Transform backend response to Lemmy response
     deactivate Proxy
     Client->>User: User sees content as if on Lemmy
 ```
 
 The proxy exposes Lemmy's API at `/api/v3/*`, the same path a real Lemmy
 server uses. Internally, each request is translated into the equivalent
-call against Piefed's API at `/api/alpha/*`, and the response is
-translated back into the shape a Lemmy client expects.
+call against the configured backend's own API, and the response is
+translated back into the shape a Lemmy client expects. Against a real
+Lemmy backend, this translation is close to a no-op, since the proxy's
+internal shapes are already modeled on Lemmy's own API.
 
 Image uploads are handled separately at `/pictrs/image`, since that is
 where Lemmy clients (and real Lemmy's pict-rs image server) send them,
@@ -95,15 +105,26 @@ Two environment variables are required, with no fallback:
 - `BACKEND_INSTANCE` — the hostname of that backend, for example
   `retrofed.com`. No scheme, no path.
 
-**Current limitation, being upfront about it:** only Post-related
-endpoints (`/post`, `/post/list`, `/post/like`, `/post/mark_as_read`) are
-actually backend-agnostic right now, via the `backend.Backend` interface
-in `service/backend/`. Every other controller (user, site, comment,
-community, search, upload) still talks to a Piefed-shaped client
-directly regardless of `BACKEND_TYPE` — that migration is in progress,
-not finished. Setting `BACKEND_TYPE=lemmy` today only changes how posts
-behave; everything else still assumes Piefed until the rest of the
-controllers get the same treatment.
+**Current limitation, being upfront about it:** only Post and Comment
+endpoints are actually backend-agnostic right now, via the
+`backend.Backend` interface in `service/backend/`. Every other
+controller (user, site, community, search, upload) still talks to a
+Piefed-shaped client directly regardless of `BACKEND_TYPE` — that
+migration is in progress, not finished. Setting `BACKEND_TYPE=lemmy`
+today only changes how posts and comments behave; everything else still
+assumes Piefed until the rest of the controllers get the same treatment.
+
+**Planned, not yet implemented:** `BACKEND_TYPE` currently distinguishes
+Piefed from real Lemmy, but not API generations within either — there's
+no version dimension yet. The goal is for `BACKEND_TYPE` to eventually
+carry a version alongside the backend choice (for example, real Lemmy
+0.17.x vs 0.19.x vs a future 1.x, each of which have genuinely different
+API shapes), so this proxy can act as a compatibility bridge across Lemmy
+versions as well as across Piefed and Lemmy — letting an older client
+keep working against a newer backend, or vice versa, instead of breaking
+outright when either side moves forward. None of that version-awareness
+exists yet; `BACKEND_TYPE=lemmy` today assumes a current-generation
+(0.19.x-shaped) Lemmy API.
 
 Since each running instance of this proxy only ever targets one backend,
 running it against multiple backends at once (say, one Piefed instance
