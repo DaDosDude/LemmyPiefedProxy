@@ -46,3 +46,19 @@ func (receiver *LemmyBackend) LikePost(request *lemmyRequest.CreatePostLikeReque
 func (receiver *LemmyBackend) MarkPostAsRead(request *lemmyRequest.MarkPostAsReadRequest, headers appHttp.Headers) (*lemmyResponse.SuccessResponse, error) {
 	return defaultHandler[lemmyResponse.SuccessResponse](receiver.client, "/post/mark_as_read", router.HttpMethodPost, request, headers)
 }
+
+func (receiver *LemmyBackend) GetComments(request *lemmyRequest.GetCommentsRequest, headers appHttp.Headers) (*lemmyResponse.GetCommentsResponse, error) {
+	return defaultHandler[lemmyResponse.GetCommentsResponse](receiver.client, "/comment/list", router.HttpMethodGet, request, headers)
+}
+
+func (receiver *LemmyBackend) GetComment(request *lemmyRequest.GetCommentRequest, headers appHttp.Headers) (*lemmyResponse.GetCommentResponse, error) {
+	return defaultHandler[lemmyResponse.GetCommentResponse](receiver.client, "/comment", router.HttpMethodGet, request, headers)
+}
+
+func (receiver *LemmyBackend) CreateComment(request *lemmyRequest.CreateCommentRequest, headers appHttp.Headers) (*lemmyResponse.CreateCommentResponse, error) {
+	return defaultHandler[lemmyResponse.CreateCommentResponse](receiver.client, "/comment", router.HttpMethodPost, request, headers)
+}
+
+func (receiver *LemmyBackend) LikeComment(request *lemmyRequest.CreateCommentLikeRequest, headers appHttp.Headers) (*lemmyResponse.GetCommentResponse, error) {
+	return defaultHandler[lemmyResponse.GetCommentResponse](receiver.client, "/comment/like", router.HttpMethodPost, request, headers)
+}

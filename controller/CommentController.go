@@ -1,25 +1,22 @@
 package controller
 
 import (
-	lemmyModel "LemmyBeProxy/dto/model/lemmy"
-	piefedModel "LemmyBeProxy/dto/model/piefed"
 	"LemmyBeProxy/dto/request/lemmy"
-	"LemmyBeProxy/dto/request/piefed"
-	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
 	"LemmyBeProxy/helper"
-	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
-	piefedService "LemmyBeProxy/service/piefed"
+	"LemmyBeProxy/service/backend"
 	goHttp "net/http"
 )
 
+// CommentController is thin — all Piefed-specific translation moved into
+// PiefedBackend. See PostController for the same pattern applied first.
 type CommentController struct {
-	piefed *piefedService.Piefed
+	backend backend.Backend
 }
 
-func NewCommentController(piefed *piefedService.Piefed) *CommentController {
+func NewCommentController(backend backend.Backend) *CommentController {
 	return &CommentController{
-		piefed: piefed,
+		backend: backend,
 	}
 }
 
@@ -29,31 +26,12 @@ func (receiver *CommentController) GetComments(request *http.Request) (*http.Res
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.GetComments(&piefed.GetCommentsRequest{
-		Type: helper.SafeDereference(reqDto.Type, func(in lemmyModel.ListingType) *piefedModel.ListingType {
-			return helper.ToPointer(converter.ReverseConvertListingType(in))
-		}),
-		PersonId:    nil,
-		MaxDepth:    reqDto.MaxDepth,
-		Page:        reqDto.Page,
-		ParentId:    reqDto.ParentId,
-		CommunityId: reqDto.CommunityId,
-		PostId:      reqDto.PostId,
-		Limit:       reqDto.Limit,
-		Sort: helper.SafeDereference(reqDto.Sort, func(in lemmyModel.CommentSortType) *piefedModel.CommentSortType {
-			return helper.ToPointer(converter.ReverseConvertCommentSortType(in))
-		}),
-	}, request.Headers)
+	resp, err := receiver.backend.GetComments(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.GetCommentsResponse{
-			Comments: helper.MapSlice(resp.Comments, converter.ConvertCommentView),
-		},
-	}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
 }
 
 func (receiver *CommentController) GetComment(request *http.Request) (*http.Response, error) {
@@ -62,20 +40,12 @@ func (receiver *CommentController) GetComment(request *http.Request) (*http.Resp
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.GetComment(&piefed.GetCommentRequest{
-		Id: reqDto.Id,
-	}, request.Headers)
+	resp, err := receiver.backend.GetComment(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.GetCommentResponse{
-			CommentView:  converter.ConvertCommentView(resp.CommentView),
-			RecipientIds: []uint{},
-		},
-	}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
 }
 
 func (receiver *CommentController) CreateComment(request *http.Request) (*http.Response, error) {
@@ -84,23 +54,12 @@ func (receiver *CommentController) CreateComment(request *http.Request) (*http.R
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.CreateComment(&piefed.CreateCommentRequest{
-		Body:       reqDto.Content,
-		PostId:     reqDto.PostId,
-		ParentId:   reqDto.ParentId,
-		LanguageId: reqDto.LanguageId,
-	}, request.Headers)
+	resp, err := receiver.backend.CreateComment(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.CreateCommentResponse{
-			CommentView:  converter.ConvertCommentView(resp.CommentView),
-			RecipientIds: []uint{},
-		},
-	}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
 }
 
 func (receiver *CommentController) LikeComment(request *http.Request) (*http.Response, error) {
@@ -109,19 +68,10 @@ func (receiver *CommentController) LikeComment(request *http.Request) (*http.Res
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.LikeComment(&piefed.LikeCommentRequest{
-		CommentId: reqDto.CommentId,
-		Score:     reqDto.Score,
-	}, request.Headers)
+	resp, err := receiver.backend.LikeComment(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.GetCommentResponse{
-			CommentView:  converter.ConvertCommentView(resp.CommentView),
-			RecipientIds: []uint{},
-		},
-	}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
 }

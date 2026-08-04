@@ -15,10 +15,10 @@ import (
 // implementation is close to a passthrough, since the shapes already
 // match.
 //
-// This interface only covers the Post-related methods so far, as the
-// first slice of a larger migration — every other controller (comment,
-// community, user, search, site, upload) still talks to the old
-// *piefed.Piefed type directly and needs the same treatment applied.
+// This interface covers Post and Comment methods so far, as the first two
+// slices of a larger migration — every other controller (community, user,
+// search, site, upload) still talks to the old *piefed.Piefed type
+// directly and needs the same treatment applied.
 type Backend interface {
 	GetPosts(request *lemmyRequest.GetPostsRequest, headers http.Headers) (*lemmyResponse.GetPostsResponse, error)
 	GetPost(request *lemmyRequest.GetPostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
@@ -26,4 +26,9 @@ type Backend interface {
 	EditPost(request *lemmyRequest.EditPostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
 	LikePost(request *lemmyRequest.CreatePostLikeRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
 	MarkPostAsRead(request *lemmyRequest.MarkPostAsReadRequest, headers http.Headers) (*lemmyResponse.SuccessResponse, error)
+
+	GetComments(request *lemmyRequest.GetCommentsRequest, headers http.Headers) (*lemmyResponse.GetCommentsResponse, error)
+	GetComment(request *lemmyRequest.GetCommentRequest, headers http.Headers) (*lemmyResponse.GetCommentResponse, error)
+	CreateComment(request *lemmyRequest.CreateCommentRequest, headers http.Headers) (*lemmyResponse.CreateCommentResponse, error)
+	LikeComment(request *lemmyRequest.CreateCommentLikeRequest, headers http.Headers) (*lemmyResponse.GetCommentResponse, error)
 }

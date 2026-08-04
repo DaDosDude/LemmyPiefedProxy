@@ -142,3 +142,74 @@ func (receiver *PiefedBackend) MarkPostAsRead(request *lemmyRequest.MarkPostAsRe
 
 	return &lemmyResponse.SuccessResponse{Success: resp.Success}, nil
 }
+
+func (receiver *PiefedBackend) GetComments(request *lemmyRequest.GetCommentsRequest, headers appHttp.Headers) (*lemmyResponse.GetCommentsResponse, error) {
+	resp, err := receiver.client.GetComments(&piefedRequest.GetCommentsRequest{
+		Type: helper.SafeDereference(request.Type, func(in lemmyModel.ListingType) *piefedModel.ListingType {
+			return helper.ToPointer(converter.ReverseConvertListingType(in))
+		}),
+		PersonId:    nil,
+		MaxDepth:    request.MaxDepth,
+		Page:        request.Page,
+		ParentId:    request.ParentId,
+		CommunityId: request.CommunityId,
+		PostId:      request.PostId,
+		Limit:       request.Limit,
+		Sort: helper.SafeDereference(request.Sort, func(in lemmyModel.CommentSortType) *piefedModel.CommentSortType {
+			return helper.ToPointer(converter.ReverseConvertCommentSortType(in))
+		}),
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.GetCommentsResponse{
+		Comments: helper.MapSlice(resp.Comments, converter.ConvertCommentView),
+	}, nil
+}
+
+func (receiver *PiefedBackend) GetComment(request *lemmyRequest.GetCommentRequest, headers appHttp.Headers) (*lemmyResponse.GetCommentResponse, error) {
+	resp, err := receiver.client.GetComment(&piefedRequest.GetCommentRequest{
+		Id: request.Id,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.GetCommentResponse{
+		CommentView:  converter.ConvertCommentView(resp.CommentView),
+		RecipientIds: []uint{},
+	}, nil
+}
+
+func (receiver *PiefedBackend) CreateComment(request *lemmyRequest.CreateCommentRequest, headers appHttp.Headers) (*lemmyResponse.CreateCommentResponse, error) {
+	resp, err := receiver.client.CreateComment(&piefedRequest.CreateCommentRequest{
+		Body:       request.Content,
+		PostId:     request.PostId,
+		ParentId:   request.ParentId,
+		LanguageId: request.LanguageId,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.CreateCommentResponse{
+		CommentView:  converter.ConvertCommentView(resp.CommentView),
+		RecipientIds: []uint{},
+	}, nil
+}
+
+func (receiver *PiefedBackend) LikeComment(request *lemmyRequest.CreateCommentLikeRequest, headers appHttp.Headers) (*lemmyResponse.GetCommentResponse, error) {
+	resp, err := receiver.client.LikeComment(&piefedRequest.LikeCommentRequest{
+		CommentId: request.CommentId,
+		Score:     request.Score,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.GetCommentResponse{
+		CommentView:  converter.ConvertCommentView(resp.CommentView),
+		RecipientIds: []uint{},
+	}, nil
+}

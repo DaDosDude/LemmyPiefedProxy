@@ -22,16 +22,16 @@ var simulateLemmy bool
 var piefed *piefedService.Piefed
 var activityPub *service.ActivityPub
 
-// postBackend is the first controller migrated onto the new pluggable
-// backend.Backend interface — see service/backend/Backend.go. Every other
-// controller (user, site, comment, community, search, upload) still
-// talks to the raw *piefed.Piefed client above directly, and will keep
-// doing so — PieFed-shaped, regardless of BACKEND_TYPE — until they get
-// the same migration in follow-up work. Setting BACKEND_TYPE=lemmy right
-// now only changes Post-related endpoint behavior; everything else still
-// assumes a Piefed backend until the rest of the controllers move onto
-// this interface too.
-var postBackend backend.Backend
+// activeBackend is the shared instance every migrated controller talks
+// to — see service/backend/Backend.go. Post and Comment controllers are
+// migrated onto it so far. Every other controller (community, user,
+// search, site, upload) still talks to the raw *piefed.Piefed client
+// above directly, and will keep doing so — PieFed-shaped, regardless of
+// BACKEND_TYPE — until they get the same migration in follow-up work.
+// Setting BACKEND_TYPE=lemmy right now only changes Post/Comment
+// endpoint behavior; everything else still assumes a Piefed backend
+// until the rest of the controllers move onto this interface too.
+var activeBackend backend.Backend
 
 func init() {
 	if port, exists := os.LookupEnv("PORT"); exists {
@@ -69,9 +69,9 @@ func init() {
 
 	switch backendType {
 	case "piefed":
-		postBackend = piefedService.NewPiefedBackend(piefedService.NewPiefed(backendInstance))
+		activeBackend = piefedService.NewPiefedBackend(piefedService.NewPiefed(backendInstance))
 	case "lemmy":
-		postBackend = lemmyService.NewLemmyBackend(lemmyService.NewLemmy(backendInstance))
+		activeBackend = lemmyService.NewLemmyBackend(lemmyService.NewLemmy(backendInstance))
 	default:
 		panic(fmt.Sprintf("unknown BACKEND_TYPE %q — expected \"piefed\" or \"lemmy\"", backendType))
 	}
