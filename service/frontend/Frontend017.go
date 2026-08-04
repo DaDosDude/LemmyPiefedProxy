@@ -150,3 +150,89 @@ func (receiver *Frontend017) ParseMarkPostAsReadRequest(request *http.Request) (
 func (receiver *Frontend017) BuildSuccessResponse(resp *lemmyResponse.SuccessResponse) any {
 	return resp
 }
+
+func (receiver *Frontend017) ParseGetCommentsRequest(request *http.Request) (*lemmyRequest.GetCommentsRequest, error) {
+	reqDto, err := helper.ParseRequestQuery[lemmyRequest017.GetCommentsRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyRequest.GetCommentsRequest{
+		Type:          reqDto.Type,
+		Sort:          reqDto.Sort,
+		MaxDepth:      reqDto.MaxDepth,
+		Page:          reqDto.Page,
+		Limit:         reqDto.Limit,
+		CommunityId:   reqDto.CommunityId,
+		CommunityName: reqDto.CommunityName,
+		PostId:        reqDto.PostId,
+		ParentId:      reqDto.ParentId,
+		SavedOnly:     reqDto.SavedOnly,
+		// LikedOnly, DislikedOnly don't exist in 0.17.x — left unset.
+	}, nil
+}
+
+func (receiver *Frontend017) BuildGetCommentsResponse(resp *lemmyResponse.GetCommentsResponse) any {
+	return &lemmyResponse017.GetCommentsResponse{
+		Comments: helper.MapSlice(resp.Comments, converter.ConvertCommentViewTo017),
+	}
+}
+
+func (receiver *Frontend017) ParseGetCommentRequest(request *http.Request) (*lemmyRequest.GetCommentRequest, error) {
+	reqDto, err := helper.ParseRequestQuery[lemmyRequest017.GetCommentRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyRequest.GetCommentRequest{
+		Id: reqDto.Id,
+	}, nil
+}
+
+func (receiver *Frontend017) BuildGetCommentResponse(resp *lemmyResponse.GetCommentResponse) any {
+	return &lemmyResponse017.CommentResponse{
+		CommentView:  converter.ConvertCommentViewTo017(resp.CommentView),
+		RecipientIds: resp.RecipientIds,
+		// FormId: known gap, see CommentResponse017's own comment.
+	}
+}
+
+func (receiver *Frontend017) ParseCreateCommentRequest(request *http.Request) (*lemmyRequest.CreateCommentRequest, error) {
+	reqDto, err := helper.ParseRequest[lemmyRequest017.CreateCommentRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyRequest.CreateCommentRequest{
+		Content:    reqDto.Content,
+		PostId:     reqDto.PostId,
+		ParentId:   reqDto.ParentId,
+		LanguageId: reqDto.LanguageId,
+	}, nil
+}
+
+func (receiver *Frontend017) BuildCreateCommentResponse(resp *lemmyResponse.CreateCommentResponse) any {
+	return &lemmyResponse017.CommentResponse{
+		CommentView:  converter.ConvertCommentViewTo017(resp.CommentView),
+		RecipientIds: resp.RecipientIds,
+	}
+}
+
+func (receiver *Frontend017) ParseCreateCommentLikeRequest(request *http.Request) (*lemmyRequest.CreateCommentLikeRequest, error) {
+	reqDto, err := helper.ParseRequest[lemmyRequest017.CreateCommentLikeRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyRequest.CreateCommentLikeRequest{
+		CommentId: reqDto.CommentId,
+		Score:     reqDto.Score,
+	}, nil
+}
+
+func (receiver *Frontend017) BuildLikeCommentResponse(resp *lemmyResponse.GetCommentResponse) any {
+	return &lemmyResponse017.CommentResponse{
+		CommentView:  converter.ConvertCommentViewTo017(resp.CommentView),
+		RecipientIds: resp.RecipientIds,
+	}
+}

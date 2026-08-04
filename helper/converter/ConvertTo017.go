@@ -67,6 +67,38 @@ func ConvertPostAggregatesTo017(in lemmy.PostAggregates, featuredCommunity bool,
 	}
 }
 
+// ConvertCommentAggregatesTo017 fills in the field 0.17.2's real
+// CommentAggregates requires that our canonical model doesn't track —
+// see dto/model/lemmy017/CommentAggregates.go for why.
+func ConvertCommentAggregatesTo017(in lemmy.CommentAggregates) lemmy017.CommentAggregates {
+	return lemmy017.CommentAggregates{
+		Id:         in.CommentId,
+		CommentId:  in.CommentId,
+		Score:      in.Score,
+		Upvotes:    in.Upvotes,
+		Downvotes:  in.Downvotes,
+		Published:  in.Published,
+		ChildCount: in.ChildCount,
+	}
+}
+
+// ConvertCommentViewTo017 assembles a full 0.17.x-shaped CommentView from
+// the canonical one.
+func ConvertCommentViewTo017(in lemmy.CommentView) lemmy017.CommentView {
+	return lemmy017.CommentView{
+		Comment:                    in.Comment,
+		Creator:                    ConvertPersonTo017(in.Creator),
+		Post:                       in.Post,
+		Community:                  in.Community,
+		Counts:                     ConvertCommentAggregatesTo017(in.Counts),
+		CreatorBannedFromCommunity: in.CreatorBannedFromCommunity,
+		Subscribed:                 in.Subscribed,
+		Saved:                      in.Saved,
+		CreatorBlocked:             in.CreatorBlocked,
+		MyVote:                     in.MyVote,
+	}
+}
+
 // ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
 // canonical one, applying both conversions above.
 func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {

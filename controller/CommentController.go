@@ -1,27 +1,28 @@
 package controller
 
 import (
-	"LemmyBeProxy/dto/request/lemmy"
 	"LemmyBeProxy/helper"
 	"LemmyBeProxy/http"
 	"LemmyBeProxy/service/backend"
+	"LemmyBeProxy/service/frontend"
 	goHttp "net/http"
 )
 
-// CommentController is thin — all Piefed-specific translation moved into
-// PiefedBackend. See PostController for the same pattern applied first.
+// CommentController is thin on both ends, same pattern as PostController.
 type CommentController struct {
-	backend backend.Backend
+	backend  backend.Backend
+	frontend frontend.Frontend
 }
 
-func NewCommentController(backend backend.Backend) *CommentController {
+func NewCommentController(backend backend.Backend, frontend frontend.Frontend) *CommentController {
 	return &CommentController{
-		backend: backend,
+		backend:  backend,
+		frontend: frontend,
 	}
 }
 
 func (receiver *CommentController) GetComments(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.GetCommentsRequest](request)
+	reqDto, err := receiver.frontend.ParseGetCommentsRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -31,11 +32,11 @@ func (receiver *CommentController) GetComments(request *http.Request) (*http.Res
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommentsResponse(resp)}, nil
 }
 
 func (receiver *CommentController) GetComment(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.GetCommentRequest](request)
+	reqDto, err := receiver.frontend.ParseGetCommentRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -45,11 +46,11 @@ func (receiver *CommentController) GetComment(request *http.Request) (*http.Resp
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommentResponse(resp)}, nil
 }
 
 func (receiver *CommentController) CreateComment(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.CreateCommentRequest](request)
+	reqDto, err := receiver.frontend.ParseCreateCommentRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -59,11 +60,11 @@ func (receiver *CommentController) CreateComment(request *http.Request) (*http.R
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildCreateCommentResponse(resp)}, nil
 }
 
 func (receiver *CommentController) LikeComment(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.CreateCommentLikeRequest](request)
+	reqDto, err := receiver.frontend.ParseCreateCommentLikeRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -73,5 +74,5 @@ func (receiver *CommentController) LikeComment(request *http.Request) (*http.Res
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildLikeCommentResponse(resp)}, nil
 }

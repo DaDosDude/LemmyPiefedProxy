@@ -56,3 +56,35 @@ func (receiver *Frontend019) ParseMarkPostAsReadRequest(request *http.Request) (
 func (receiver *Frontend019) BuildSuccessResponse(resp *lemmyResponse.SuccessResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) ParseGetCommentsRequest(request *http.Request) (*lemmyRequest.GetCommentsRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetCommentsRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetCommentsResponse(resp *lemmyResponse.GetCommentsResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseGetCommentRequest(request *http.Request) (*lemmyRequest.GetCommentRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetCommentRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetCommentResponse(resp *lemmyResponse.GetCommentResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseCreateCommentRequest(request *http.Request) (*lemmyRequest.CreateCommentRequest, error) {
+	return helper.ParseRequest[lemmyRequest.CreateCommentRequest](request)
+}
+
+func (receiver *Frontend019) BuildCreateCommentResponse(resp *lemmyResponse.CreateCommentResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseCreateCommentLikeRequest(request *http.Request) (*lemmyRequest.CreateCommentLikeRequest, error) {
+	return helper.ParseRequest[lemmyRequest.CreateCommentLikeRequest](request)
+}
+
+func (receiver *Frontend019) BuildLikeCommentResponse(resp *lemmyResponse.GetCommentResponse) any {
+	return resp
+}

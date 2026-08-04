@@ -35,9 +35,9 @@ var activityPub *service.ActivityPub
 var activeBackend backend.Backend
 
 // activeFrontend is the wire-format counterpart to activeBackend — see
-// service/frontend/Frontend.go. Only PostController is migrated onto it
-// so far; CommentController and everything else still assumes the
-// current (0.19.x) wire format directly regardless of FRONTEND_VERSION.
+// service/frontend/Frontend.go. Post and Comment controllers are
+// migrated onto it so far; everything else still assumes the current
+// (0.19.x) wire format directly regardless of FRONTEND_VERSION.
 var activeFrontend frontend.Frontend
 
 func init() {
