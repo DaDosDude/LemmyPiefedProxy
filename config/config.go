@@ -4,6 +4,7 @@ import (
 	"LemmyBeProxy/router"
 	"LemmyBeProxy/service"
 	"LemmyBeProxy/service/backend"
+	"LemmyBeProxy/service/frontend"
 	lemmyService "LemmyBeProxy/service/lemmy"
 	piefedService "LemmyBeProxy/service/piefed"
 	"fmt"
@@ -32,6 +33,12 @@ var activityPub *service.ActivityPub
 // endpoint behavior; everything else still assumes a Piefed backend
 // until the rest of the controllers move onto this interface too.
 var activeBackend backend.Backend
+
+// activeFrontend is the wire-format counterpart to activeBackend — see
+// service/frontend/Frontend.go. Only PostController is migrated onto it
+// so far; CommentController and everything else still assumes the
+// current (0.19.x) wire format directly regardless of FRONTEND_VERSION.
+var activeFrontend frontend.Frontend
 
 func init() {
 	if port, exists := os.LookupEnv("PORT"); exists {
@@ -64,6 +71,15 @@ func init() {
 		panic("BACKEND_INSTANCE environment variable not set")
 	}
 
+	// FRONTEND_VERSION is required too, same "no preference" philosophy.
+	// "0.19" for the current Lemmy wire format (what every deployment of
+	// this proxy has used until now), "0.17" for the older format
+	// lemmyBB and similar older clients actually speak.
+	frontendVersion, hasFrontendVersion := os.LookupEnv("FRONTEND_VERSION")
+	if !hasFrontendVersion {
+		panic("FRONTEND_VERSION environment variable not set — must be \"0.19\" or \"0.17\"")
+	}
+
 	piefed = piefedService.NewPiefed(backendInstance)
 	activityPub = service.NewActivityPub()
 
@@ -74,6 +90,15 @@ func init() {
 		activeBackend = lemmyService.NewLemmyBackend(lemmyService.NewLemmy(backendInstance))
 	default:
 		panic(fmt.Sprintf("unknown BACKEND_TYPE %q — expected \"piefed\" or \"lemmy\"", backendType))
+	}
+
+	switch frontendVersion {
+	case "0.19":
+		activeFrontend = frontend.NewFrontend019()
+	case "0.17":
+		activeFrontend = frontend.NewFrontend017()
+	default:
+		panic(fmt.Sprintf("unknown FRONTEND_VERSION %q — expected \"0.19\" or \"0.17\"", frontendVersion))
 	}
 
 	AppRouter = router.NewRouter()

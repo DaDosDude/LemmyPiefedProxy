@@ -1,31 +1,32 @@
 package controller
 
 import (
-	"LemmyBeProxy/dto/request/lemmy"
 	"LemmyBeProxy/helper"
 	"LemmyBeProxy/http"
 	"LemmyBeProxy/service/backend"
+	"LemmyBeProxy/service/frontend"
 	goHttp "net/http"
 )
 
-// PostController is now thin — it only parses HTTP in, calls the
-// backend, and wraps the result back into an HTTP response. All the
-// Piefed-specific field translation that used to live here (sort/listing
-// type conversion, the community_id + Subscribed workaround, mapping
-// Lemmy's Name to Piefed's Title, etc.) moved into PiefedBackend, since
-// that's backend-specific logic a Lemmy backend doesn't need at all.
+// PostController is thin on both ends now — frontend handles parsing the
+// request and building the response in whatever wire format the
+// configured FRONTEND_VERSION expects, backend handles translating to
+// and from whatever BACKEND_TYPE is actually running. The controller
+// itself has no version-specific knowledge of either side at all.
 type PostController struct {
-	backend backend.Backend
+	backend  backend.Backend
+	frontend frontend.Frontend
 }
 
-func NewPostController(backend backend.Backend) *PostController {
+func NewPostController(backend backend.Backend, frontend frontend.Frontend) *PostController {
 	return &PostController{
-		backend: backend,
+		backend:  backend,
+		frontend: frontend,
 	}
 }
 
 func (receiver *PostController) GetPosts(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.GetPostsRequest](request)
+	reqDto, err := receiver.frontend.ParseGetPostsRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -41,11 +42,11 @@ func (receiver *PostController) GetPosts(request *http.Request) (*http.Response,
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetPostsResponse(resp)}, nil
 }
 
 func (receiver *PostController) GetPost(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.GetPostRequest](request)
+	reqDto, err := receiver.frontend.ParseGetPostRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -55,11 +56,11 @@ func (receiver *PostController) GetPost(request *http.Request) (*http.Response, 
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetPostResponse(resp)}, nil
 }
 
 func (receiver *PostController) MarkPostAsRead(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.MarkPostAsReadRequest](request)
+	reqDto, err := receiver.frontend.ParseMarkPostAsReadRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -69,11 +70,11 @@ func (receiver *PostController) MarkPostAsRead(request *http.Request) (*http.Res
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildSuccessResponse(resp)}, nil
 }
 
 func (receiver *PostController) CreatePost(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.CreatePostRequest](request)
+	reqDto, err := receiver.frontend.ParseCreatePostRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -83,11 +84,11 @@ func (receiver *PostController) CreatePost(request *http.Request) (*http.Respons
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildPostMutationResponse(resp)}, nil
 }
 
 func (receiver *PostController) EditPost(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.EditPostRequest](request)
+	reqDto, err := receiver.frontend.ParseEditPostRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -97,11 +98,11 @@ func (receiver *PostController) EditPost(request *http.Request) (*http.Response,
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildPostMutationResponse(resp)}, nil
 }
 
 func (receiver *PostController) LikePost(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.CreatePostLikeRequest](request)
+	reqDto, err := receiver.frontend.ParseCreatePostLikeRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -111,5 +112,5 @@ func (receiver *PostController) LikePost(request *http.Request) (*http.Response,
 		return nil, err
 	}
 
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: resp}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildPostMutationResponse(resp)}, nil
 }
