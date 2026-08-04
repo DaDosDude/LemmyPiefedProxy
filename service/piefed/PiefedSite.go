@@ -1,9 +1,9 @@
 package piefed
 
 import (
-	piefedResponse "LemmyPiefedApi/dto/response/piefed"
-	"LemmyPiefedApi/http"
-	"LemmyPiefedApi/router"
+	piefedResponse "LemmyBeProxy/dto/response/piefed"
+	"LemmyBeProxy/http"
+	"LemmyBeProxy/router"
 )
 
 func (receiver *Piefed) Site(headers http.Headers) (*piefedResponse.GetSiteResponse, error) {

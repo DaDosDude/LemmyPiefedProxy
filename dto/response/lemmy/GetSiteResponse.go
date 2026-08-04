@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type GetSiteResponse struct {
 	Admins              []lemmy.PersonView            `json:"admins" validate:"required"`

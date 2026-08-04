@@ -1,8 +1,8 @@
 package config
 
 import (
-	"LemmyPiefedApi/controller"
-	"LemmyPiefedApi/router"
+	"LemmyBeProxy/controller"
+	"LemmyBeProxy/router"
 )
 
 func newRoute(path string, method router.HttpMethod, controller router.ControllerMethod) *router.Route {
@@ -12,7 +12,7 @@ func newRoute(path string, method router.HttpMethod, controller router.Controlle
 func init() {
 	userController := controller.NewUserController(piefed)
 	siteController := controller.NewSiteController(piefed, activityPub, simulateLemmy)
-	postController := controller.NewPostController(piefed)
+	postController := controller.NewPostController(postBackend)
 	commentController := controller.NewCommentController(piefed)
 	communityController := controller.NewCommunityController(piefed)
 	searchController := controller.NewSearchController(piefed)

@@ -1,7 +1,7 @@
 package http
 
 import (
-	"LemmyPiefedApi/dto/response"
+	"LemmyBeProxy/dto/response"
 	"net/http"
 )
 

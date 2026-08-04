@@ -1,6 +1,6 @@
 package piefed
 
-import "LemmyPiefedApi/dto/model/piefed"
+import "LemmyBeProxy/dto/model/piefed"
 
 type GetUserResponse struct {
 	Comments   []piefed.CommentView            `json:"comments" required:"true"`

@@ -1,7 +1,7 @@
 package piefed
 
 import (
-	piefedResponse "LemmyPiefedApi/dto/response/piefed"
+	piefedResponse "LemmyBeProxy/dto/response/piefed"
 	"bytes"
 	"encoding/json"
 	"fmt"

@@ -1,4 +1,4 @@
-module LemmyPiefedApi
+module LemmyBeProxy
 
 go 1.24
 

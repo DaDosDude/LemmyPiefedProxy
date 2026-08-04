@@ -1,7 +1,7 @@
 package service
 
 import (
-	"LemmyPiefedApi/dto/model/ap"
+	"LemmyBeProxy/dto/model/ap"
 	"encoding/json"
 	"io"
 	"net/http"

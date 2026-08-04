@@ -1,7 +1,7 @@
 package http
 
 import (
-	"LemmyPiefedApi/json"
+	"LemmyBeProxy/json"
 	"log"
 	"net/http"
 )

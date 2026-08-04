@@ -1,10 +1,10 @@
 package piefed
 
 import (
-	piefedRequest "LemmyPiefedApi/dto/request/piefed"
-	piefedResponse "LemmyPiefedApi/dto/response/piefed"
-	appHttp "LemmyPiefedApi/http"
-	"LemmyPiefedApi/router"
+	piefedRequest "LemmyBeProxy/dto/request/piefed"
+	piefedResponse "LemmyBeProxy/dto/response/piefed"
+	appHttp "LemmyBeProxy/http"
+	"LemmyBeProxy/router"
 )
 
 func (receiver *Piefed) Login(request *piefedRequest.LoginRequest, headers appHttp.Headers) (*piefedResponse.LoginResponse, error) {

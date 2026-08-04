@@ -1,4 +1,5 @@
 /.idea
 /cert.dev.crt
 /cert.dev.key
+LemmyBeProxy
 *.tar.gz

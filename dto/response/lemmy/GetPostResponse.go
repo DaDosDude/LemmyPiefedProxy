@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type GetPostResponse struct {
 	CommunityView lemmy.CommunityView            `json:"community_view" required:"true"`

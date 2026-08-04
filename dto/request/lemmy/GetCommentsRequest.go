@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type GetCommentsRequest struct {
 	CommunityId   *uint                  `json:"community_id,omitempty"`

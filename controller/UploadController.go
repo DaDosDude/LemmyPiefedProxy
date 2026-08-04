@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"LemmyPiefedApi/http"
-	pfService "LemmyPiefedApi/service/piefed"
+	"LemmyBeProxy/http"
+	pfService "LemmyBeProxy/service/piefed"
 	"bytes"
 	"encoding/hex"
 	"io"

@@ -1,7 +1,7 @@
 package piefed
 
 import (
-	"LemmyPiefedApi/dto/model/piefed"
+	"LemmyBeProxy/dto/model/piefed"
 )
 
 type GetCommentsRequest struct {

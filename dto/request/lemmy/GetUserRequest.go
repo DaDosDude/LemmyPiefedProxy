@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 // One of PersonId or Username must be set — same requirement Piefed enforces.
 // CommunityId (limit posts/comments to one community) exists on Lemmy's

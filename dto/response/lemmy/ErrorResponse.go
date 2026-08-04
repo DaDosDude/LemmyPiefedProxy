@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type ErrorResponse struct {
 	Error   lemmy.ErrorCode `json:"error"`

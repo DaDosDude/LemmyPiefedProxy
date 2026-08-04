@@ -1,10 +1,10 @@
 package piefed
 
 import (
-	piefedResponse "LemmyPiefedApi/dto/response/piefed"
-	"LemmyPiefedApi/helper"
-	"LemmyPiefedApi/http"
-	"LemmyPiefedApi/router"
+	piefedResponse "LemmyBeProxy/dto/response/piefed"
+	"LemmyBeProxy/helper"
+	"LemmyBeProxy/http"
+	"LemmyBeProxy/router"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -139,6 +139,14 @@ func (receiver *Piefed) sendRequest(
 	if err != nil {
 		return nil, err
 	}
+
+	// Log the exact outbound request we're about to send. This matters
+	// specifically for GET requests — the query string is built by
+	// helper.MarshalToQueryString from a Go struct, and if that produces
+	// something Piefed doesn't recognize (a malformed or unexpected value
+	// for a field), the error response alone doesn't show what we
+	// actually sent, only what Piefed's validator complained about.
+	log.Printf("piefed request: %s %s", method, receiver.url()+path+queryString)
 
 	req.Header = helper.MapMap(helper.MapFilter(headers, func(value, key string) bool {
 		lowerKey := strings.ToLower(key)

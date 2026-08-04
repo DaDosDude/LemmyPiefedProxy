@@ -1,6 +1,6 @@
 package piefed
 
-import "LemmyPiefedApi/dto/model/piefed"
+import "LemmyBeProxy/dto/model/piefed"
 
 type GetCommunitiesRequest struct {
 	Type     *piefed.ListingType `json:"type_,omitempty"`

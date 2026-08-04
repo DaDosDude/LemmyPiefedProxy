@@ -1,6 +1,6 @@
 package piefed
 
-import "LemmyPiefedApi/dto/model/piefed"
+import "LemmyBeProxy/dto/model/piefed"
 
 type GetPostResponse struct {
 	PostView      piefed.PostView                 `json:"post_view" required:"true"`

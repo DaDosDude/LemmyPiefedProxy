@@ -1,9 +1,9 @@
 package converter
 
 import (
-	"LemmyPiefedApi/dto/model/ap"
-	"LemmyPiefedApi/dto/model/lemmy"
-	"LemmyPiefedApi/dto/model/piefed"
+	"LemmyBeProxy/dto/model/ap"
+	"LemmyBeProxy/dto/model/lemmy"
+	"LemmyBeProxy/dto/model/piefed"
 )
 
 func ConvertSite(in *piefed.Site, actor ap.Actor) *lemmy.Site {

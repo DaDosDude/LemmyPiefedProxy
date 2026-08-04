@@ -1,20 +1,29 @@
-# Lemmy to Piefed Proxy
+# LemmyBeProxy
 
-This proxy sits in front of a Piefed instance and translates requests and
-responses between Piefed's native API and Lemmy's API shape. The practical
-result: any frontend or app built for Lemmy (mlmym, Alexandrite, Voyager,
-official Lemmy apps, and so on) can talk to a Piefed server through this
-proxy without knowing it isn't talking to real Lemmy. This includes older
-clients still built against Lemmy 0.18.x's authentication convention, not
-just the `Authorization: Bearer` header used from Lemmy 0.19 onward — see
-Authentication compatibility below.
+A Lemmy-API-compatible proxy with a pluggable backend. It sits in front of
+either a Piefed instance or a real Lemmy instance and speaks Lemmy's API
+shape to whatever's in front of it, regardless of which backend is
+actually behind it. The practical result: any frontend or app built for
+Lemmy (mlmym, Alexandrite, Voyager, official Lemmy apps, and so on) can
+talk to this proxy without knowing (or caring) what's actually running on
+the other side. This includes older clients still built against Lemmy
+0.18.x's authentication convention, not just the `Authorization: Bearer`
+header used from Lemmy 0.19 onward — see Authentication compatibility
+below.
+
+This proxy takes no default position on which backend you're running —
+`BACKEND_TYPE` and `BACKEND_INSTANCE` are both required, with no fallback.
+See Backend configuration below.
 
 Piefed's own API already overlaps with Lemmy's API in many places by
-design, which is what makes this possible without reimplementing Piefed
-from scratch. This project fills in the gaps: translating field names and
-data shapes where they differ, handling the places where Piefed's API
-diverges from Lemmy's assumptions, and covering routes Piefed exposes
-under different paths or not at all natively.
+design, which is what makes Piefed support possible without
+reimplementing Piefed from scratch. This project fills in the gaps:
+translating field names and data shapes where they differ, handling the
+places where Piefed's API diverges from Lemmy's assumptions, and covering
+routes Piefed exposes under different paths or not at all natively. When
+pointed at a real Lemmy backend instead, most of this translation isn't
+needed at all — this proxy's internal request/response shapes are already
+modeled on Lemmy's real API, so a Lemmy backend is close to a passthrough.
 
 ## How it works
 
@@ -71,18 +80,44 @@ authenticated as the same real account a header-based request would.
 
 - Go 1.24 or newer to build from source
 - Docker, if you would rather build and run the container image
-- A running Piefed instance you have permission to point this at
+- A running Piefed instance or a real Lemmy instance, whichever you're
+  pointing this at, that you have permission to point this at
 - A Lemmy-compatible frontend to actually use once the proxy is running
   (this project was built and tested against mlmym, but nothing about it
   is mlmym-specific)
+
+## Backend configuration
+
+This proxy takes no default position on what it's running in front of.
+Two environment variables are required, with no fallback:
+
+- `BACKEND_TYPE` — `piefed` or `lemmy`.
+- `BACKEND_INSTANCE` — the hostname of that backend, for example
+  `retrofed.com`. No scheme, no path.
+
+**Current limitation, being upfront about it:** only Post-related
+endpoints (`/post`, `/post/list`, `/post/like`, `/post/mark_as_read`) are
+actually backend-agnostic right now, via the `backend.Backend` interface
+in `service/backend/`. Every other controller (user, site, comment,
+community, search, upload) still talks to a Piefed-shaped client
+directly regardless of `BACKEND_TYPE` — that migration is in progress,
+not finished. Setting `BACKEND_TYPE=lemmy` today only changes how posts
+behave; everything else still assumes Piefed until the rest of the
+controllers get the same treatment.
+
+Since each running instance of this proxy only ever targets one backend,
+running it against multiple backends at once (say, one Piefed instance
+and one real Lemmy instance) just means running multiple containers, each
+with its own `BACKEND_TYPE`/`BACKEND_INSTANCE` pair and its own port —
+the same way you'd run this proxy for two different Piefed instances
+today.
 
 ## Running it
 
 ### From source
 
-1. Set the required environment variable:
-   - `PIEFED_INSTANCE`, the hostname of the Piefed instance this proxy
-     should talk to, for example `retrofed.com`. No scheme, no path.
+1. Set the required environment variables — see Backend configuration
+   above.
 
 2. Optional environment variables:
    - `PORT`, the port the app listens on. Defaults to `8080`.
@@ -99,7 +134,7 @@ authenticated as the same real account a header-based request would.
 Build the image from the included Dockerfile:
 
 ```
-docker build -t lemmy-piefed-proxy .
+docker build -t lemmybeproxy .
 ```
 
 Run it, publishing the port to localhost only (a reverse proxy in front of
@@ -108,11 +143,12 @@ below):
 
 ```
 docker run -d \
-  --name lemmy-piefed-proxy \
+  --name lemmybeproxy \
   --restart unless-stopped \
   -p 127.0.0.1:8050:8080 \
-  -e PIEFED_INSTANCE=your-instance.example \
-  lemmy-piefed-proxy
+  -e BACKEND_TYPE=piefed \
+  -e BACKEND_INSTANCE=your-instance.example \
+  lemmybeproxy
 ```
 
 ## Deployment tutorial
@@ -153,15 +189,16 @@ surface behind it.
 ### 2. Run the proxy and the frontend
 
 ```
-docker build -t lemmy-piefed-proxy .
+docker build -t lemmybeproxy .
 
 docker run -d \
-  --name lemmy-piefed-proxy \
+  --name lemmybeproxy \
   --restart unless-stopped \
   -p 127.0.0.1:8050:8080 \
-  -e PIEFED_INSTANCE=yourdomain.com \
+  -e BACKEND_TYPE=piefed \
+  -e BACKEND_INSTANCE=yourdomain.com \
   --label "com.centurylinklabs.watchtower.enable=true" \
-  lemmy-piefed-proxy
+  lemmybeproxy
 ```
 
 Then run your frontend. This example uses mlmym:
@@ -333,7 +370,8 @@ Proxy:
 
 | Variable | Required | Description |
 |---|---|---|
-| `PIEFED_INSTANCE` | Yes | Hostname of the Piefed instance to translate requests to. No scheme, no trailing slash. |
+| `BACKEND_TYPE` | Yes | `piefed` or `lemmy` — which backend this proxy is translating to. No default. |
+| `BACKEND_INSTANCE` | Yes | Hostname of the backend to translate requests to. No scheme, no trailing slash. |
 | `PORT` | No | Port to listen on. Defaults to `8080`. |
 | `SIMULATE` | No | If set, the proxy presents itself as a Lemmy server when asked for version and software information. |
 

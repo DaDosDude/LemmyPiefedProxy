@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type GetCommunitiesRequest struct {
 	Type     *lemmy.ListingType `json:"type_,omitempty"`

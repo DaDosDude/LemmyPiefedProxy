@@ -1,6 +1,6 @@
 package piefed
 
-import "LemmyPiefedApi/dto/model/piefed"
+import "LemmyBeProxy/dto/model/piefed"
 
 type GetSiteResponse struct {
 	MyUser  *piefed.MyUserInfo  `json:"my_user,omitempty"`

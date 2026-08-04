@@ -1,9 +1,9 @@
 package converter
 
 import (
-	"LemmyPiefedApi/dto/model/lemmy"
-	"LemmyPiefedApi/dto/model/piefed"
-	"LemmyPiefedApi/helper"
+	"LemmyBeProxy/dto/model/lemmy"
+	"LemmyBeProxy/dto/model/piefed"
+	"LemmyBeProxy/helper"
 )
 
 func ConvertPerson(in piefed.Person) lemmy.Person {

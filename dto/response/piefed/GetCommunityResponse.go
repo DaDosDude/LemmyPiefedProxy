@@ -1,6 +1,6 @@
 package piefed
 
-import "LemmyPiefedApi/dto/model/piefed"
+import "LemmyBeProxy/dto/model/piefed"
 
 type GetCommunityResponse struct {
 	CommunityView piefed.CommunityView            `json:"community_view" required:"true"`

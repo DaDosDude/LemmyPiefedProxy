@@ -1,14 +1,14 @@
 package controller
 
 import (
-	lemmyModel "LemmyPiefedApi/dto/model/lemmy"
-	piefedModel "LemmyPiefedApi/dto/model/piefed"
-	"LemmyPiefedApi/dto/response/lemmy"
-	"LemmyPiefedApi/helper"
-	"LemmyPiefedApi/helper/converter"
-	"LemmyPiefedApi/http"
-	"LemmyPiefedApi/service"
-	"LemmyPiefedApi/service/piefed"
+	lemmyModel "LemmyBeProxy/dto/model/lemmy"
+	piefedModel "LemmyBeProxy/dto/model/piefed"
+	"LemmyBeProxy/dto/response/lemmy"
+	"LemmyBeProxy/helper"
+	"LemmyBeProxy/helper/converter"
+	"LemmyBeProxy/http"
+	"LemmyBeProxy/service"
+	"LemmyBeProxy/service/piefed"
 	goHttp "net/http"
 )
 

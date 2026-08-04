@@ -1,0 +1,29 @@
+package backend
+
+import (
+	lemmyRequest "LemmyBeProxy/dto/request/lemmy"
+	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
+	"LemmyBeProxy/http"
+)
+
+// Backend is the contract every backend implementation (Piefed, real Lemmy,
+// and any future addition) must satisfy. Every method works entirely in
+// Lemmy-shaped request/response types — that's already this proxy's
+// canonical internal shape, since every controller was built to speak it
+// regardless of what's actually behind it. A Piefed implementation
+// translates to/from Piefed's real shape internally; a real-Lemmy
+// implementation is close to a passthrough, since the shapes already
+// match.
+//
+// This interface only covers the Post-related methods so far, as the
+// first slice of a larger migration — every other controller (comment,
+// community, user, search, site, upload) still talks to the old
+// *piefed.Piefed type directly and needs the same treatment applied.
+type Backend interface {
+	GetPosts(request *lemmyRequest.GetPostsRequest, headers http.Headers) (*lemmyResponse.GetPostsResponse, error)
+	GetPost(request *lemmyRequest.GetPostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
+	CreatePost(request *lemmyRequest.CreatePostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
+	EditPost(request *lemmyRequest.EditPostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
+	LikePost(request *lemmyRequest.CreatePostLikeRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
+	MarkPostAsRead(request *lemmyRequest.MarkPostAsReadRequest, headers http.Headers) (*lemmyResponse.SuccessResponse, error)
+}

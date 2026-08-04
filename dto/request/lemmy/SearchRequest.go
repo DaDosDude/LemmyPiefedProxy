@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 // CreatorId is intentionally not included — PieFed's /search endpoint has
 // no equivalent parameter, so searching by a specific user isn't supported

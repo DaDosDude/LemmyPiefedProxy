@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 // Lemmy's GetPersonDetailsResponse also has an optional Site field
 // (ConvertSite requires a separate ActivityPub actor fetch, same as

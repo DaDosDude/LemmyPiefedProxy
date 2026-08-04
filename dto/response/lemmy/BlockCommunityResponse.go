@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type BlockCommunityResponse struct {
 	Blocked       bool                `json:"blocked" required:"true"`

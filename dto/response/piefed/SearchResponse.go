@@ -1,6 +1,6 @@
 package piefed
 
-import "LemmyPiefedApi/dto/model/piefed"
+import "LemmyBeProxy/dto/model/piefed"
 
 type SearchResponse struct {
 	Type        piefed.SearchType      `json:"type_" required:"true"`

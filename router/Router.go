@@ -1,8 +1,8 @@
 package router
 
 import (
-	"LemmyPiefedApi/helper"
-	"LemmyPiefedApi/http"
+	"LemmyBeProxy/helper"
+	"LemmyBeProxy/http"
 	"fmt"
 	"slices"
 	"strings"

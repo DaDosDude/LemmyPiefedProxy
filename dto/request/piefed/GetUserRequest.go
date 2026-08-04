@@ -1,6 +1,6 @@
 package piefed
 
-import "LemmyPiefedApi/dto/model/piefed"
+import "LemmyBeProxy/dto/model/piefed"
 
 type GetUserRequest struct {
 	PersonId  *uint            `json:"person_id,omitempty"`

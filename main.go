@@ -1,11 +1,14 @@
 package main
 
 import (
-	"LemmyPiefedApi/config"
-	"LemmyPiefedApi/dto/response/piefed"
-	"LemmyPiefedApi/helper"
-	appHttp "LemmyPiefedApi/http"
-	"LemmyPiefedApi/router"
+	"LemmyBeProxy/config"
+	lemmyModel "LemmyBeProxy/dto/model/lemmy"
+	"LemmyBeProxy/dto/response/piefed"
+	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
+	"LemmyBeProxy/helper"
+	appHttp "LemmyBeProxy/http"
+	"LemmyBeProxy/router"
+	lemmyService "LemmyBeProxy/service/lemmy"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -100,6 +103,20 @@ func main() {
 			appHttp.WriteHttpResponse(&appHttp.Response{
 				StatusCode: responseError.StatusCode,
 				Body:       helper.ConvertPiefedErrorToLemmyError(responseError),
+			}, writer)
+			return
+		}
+
+		// Same idea as the Piefed branch above, for when BACKEND_TYPE=lemmy.
+		// Real Lemmy's error body is already Lemmy-shaped, so no
+		// translation is needed here — just forwarding its real status
+		// code and error string instead of falling through to a generic
+		// opaque 500.
+		var lemmyApiError *lemmyService.LemmyApiError
+		if errors.As(err, &lemmyApiError) {
+			appHttp.WriteHttpResponse(&appHttp.Response{
+				StatusCode: lemmyApiError.StatusCode,
+				Body:       &lemmyResponse.ErrorResponse{Error: lemmyModel.ErrorCode(lemmyApiError.ErrorCode)},
 			}, writer)
 			return
 		}

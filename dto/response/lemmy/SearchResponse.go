@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type SearchResponse struct {
 	Type        lemmy.SearchType      `json:"type_" required:"true"`

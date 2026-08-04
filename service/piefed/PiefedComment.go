@@ -1,10 +1,10 @@
 package piefed
 
 import (
-	"LemmyPiefedApi/dto/request/piefed"
-	piefedResponse "LemmyPiefedApi/dto/response/piefed"
-	"LemmyPiefedApi/http"
-	"LemmyPiefedApi/router"
+	"LemmyBeProxy/dto/request/piefed"
+	piefedResponse "LemmyBeProxy/dto/response/piefed"
+	"LemmyBeProxy/http"
+	"LemmyBeProxy/router"
 )
 
 func (receiver *Piefed) GetComments(request *piefed.GetCommentsRequest, headers http.Headers) (*piefedResponse.GetCommentsResponse, error) {

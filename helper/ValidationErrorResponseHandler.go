@@ -1,10 +1,10 @@
 package helper
 
 import (
-	"LemmyPiefedApi/dto/model"
-	lemmyModel "LemmyPiefedApi/dto/model/lemmy"
-	lemmyResponse "LemmyPiefedApi/dto/response/lemmy"
-	"LemmyPiefedApi/http"
+	"LemmyBeProxy/dto/model"
+	lemmyModel "LemmyBeProxy/dto/model/lemmy"
+	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
+	"LemmyBeProxy/http"
 	"encoding/json"
 	"errors"
 	"fmt"

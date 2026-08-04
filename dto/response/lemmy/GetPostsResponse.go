@@ -1,6 +1,6 @@
 package lemmy
 
-import "LemmyPiefedApi/dto/model/lemmy"
+import "LemmyBeProxy/dto/model/lemmy"
 
 type GetPostsResponse struct {
 	NextPage *string          `json:"next_page,omitempty"`

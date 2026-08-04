@@ -1,8 +1,8 @@
 package helper
 
 import (
-	"LemmyPiefedApi/dto/model"
-	"LemmyPiefedApi/http"
+	"LemmyBeProxy/dto/model"
+	"LemmyBeProxy/http"
 	"encoding/json"
 	"errors"
 	"github.com/go-playground/validator/v10"

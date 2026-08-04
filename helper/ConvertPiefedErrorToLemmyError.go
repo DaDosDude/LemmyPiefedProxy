@@ -1,9 +1,9 @@
 package helper
 
 import (
-	lemmyModel "LemmyPiefedApi/dto/model/lemmy"
-	"LemmyPiefedApi/dto/response/lemmy"
-	"LemmyPiefedApi/dto/response/piefed"
+	lemmyModel "LemmyBeProxy/dto/model/lemmy"
+	"LemmyBeProxy/dto/response/lemmy"
+	"LemmyBeProxy/dto/response/piefed"
 )
 
 func ConvertPiefedErrorToLemmyError(err *piefed.ErrorResponse) *lemmy.ErrorResponse {
