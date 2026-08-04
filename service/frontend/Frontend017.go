@@ -6,6 +6,7 @@ import (
 	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
 	lemmyResponse017 "LemmyBeProxy/dto/response/lemmy017"
 	"LemmyBeProxy/helper"
+	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
 )
 
@@ -42,7 +43,7 @@ func (receiver *Frontend017) ParseGetPostsRequest(request *http.Request) (*lemmy
 func (receiver *Frontend017) BuildGetPostsResponse(resp *lemmyResponse.GetPostsResponse) any {
 	// 0.17.x has no next_page concept at all — dropped, not translated.
 	return &lemmyResponse017.GetPostsResponse{
-		Posts: resp.Posts,
+		Posts: helper.MapSlice(resp.Posts, converter.ConvertPostViewTo017),
 	}
 }
 
@@ -61,9 +62,13 @@ func (receiver *Frontend017) ParseGetPostRequest(request *http.Request) (*lemmyR
 func (receiver *Frontend017) BuildGetPostResponse(resp *lemmyResponse.GetPostResponse) any {
 	// 0.17.x has no cross_posts field and expects an "online" viewer
 	// count our canonical model doesn't track at all — 0 is the honest
-	// value here, not a guess standing in for real data.
+	// value here, not a guess standing in for real data. CommunityView
+	// and Moderators are passed through unchanged — confirmed clean for
+	// the outer Community shape, but CommunityView's own nested
+	// aggregates haven't been checked field-by-field against 0.17.2 the
+	// way Person/PostAggregates have, a remaining open risk.
 	return &lemmyResponse017.GetPostResponse{
-		PostView:      resp.PostView,
+		PostView:      converter.ConvertPostViewTo017(resp.PostView),
 		CommunityView: resp.CommunityView,
 		Moderators:    resp.Moderators,
 		Online:        0,
@@ -120,7 +125,7 @@ func (receiver *Frontend017) BuildPostMutationResponse(resp *lemmyResponse.GetPo
 	// shape — confirmed against each handler in Lemmy's own source, not
 	// the fuller GetPostResponse used for fetching.
 	return &lemmyResponse017.PostResponse{
-		PostView: resp.PostView,
+		PostView: converter.ConvertPostViewTo017(resp.PostView),
 	}
 }
 

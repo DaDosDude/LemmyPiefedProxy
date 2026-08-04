@@ -1,0 +1,86 @@
+package converter
+
+import (
+	"LemmyBeProxy/dto/model/lemmy"
+	"LemmyBeProxy/dto/model/lemmy017"
+)
+
+// ConvertPersonTo017 fills in the two fields 0.17.2's real PersonSafe
+// requires that our canonical Person doesn't track — see
+// dto/model/lemmy017/Person.go for why each is handled the way it is.
+func ConvertPersonTo017(in lemmy.Person) lemmy017.Person {
+	botAccount := false
+	if in.BotAccount != nil {
+		botAccount = *in.BotAccount
+	}
+
+	return lemmy017.Person{
+		Id:           in.Id,
+		Name:         in.Name,
+		DisplayName:  strPtrOrNil(in.DisplayName),
+		Avatar:       in.Avatar,
+		Banned:       in.Banned,
+		Published:    in.Published,
+		Updated:      in.Updated,
+		ActorId:      in.ActorId,
+		Bio:          in.Bio,
+		Local:        in.Local,
+		Banner:       in.Banner,
+		Deleted:      in.Deleted,
+		InboxUrl:     in.ActorId + "/inbox",
+		MatrixUserId: in.MatrixUserId,
+		Admin:        false,
+		BotAccount:   botAccount,
+		InstanceId:   in.InstanceId,
+	}
+}
+
+// strPtrOrNil converts Person.DisplayName (a plain string in the
+// canonical model, empty string meaning "not set") into 0.17.x's
+// Option<String> convention (nil meaning "not set").
+func strPtrOrNil(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// ConvertPostAggregatesTo017 fills in the fields 0.17.2's real
+// PostAggregates requires that our canonical model doesn't track — see
+// dto/model/lemmy017/PostAggregates.go for why each is handled the way
+// it is. featuredCommunity/featuredLocal come from the sibling Post
+// object, since that's real data, just tracked in a different place in
+// the canonical model.
+func ConvertPostAggregatesTo017(in lemmy.PostAggregates, featuredCommunity bool, featuredLocal bool) lemmy017.PostAggregates {
+	return lemmy017.PostAggregates{
+		Id:                     in.PostId,
+		PostId:                 in.PostId,
+		Comments:               in.Comments,
+		Score:                  in.Score,
+		Upvotes:                in.Upvotes,
+		Downvotes:              in.Downvotes,
+		Published:              in.Published,
+		NewestCommentTimeNecro: in.NewestCommentTime,
+		NewestCommentTime:      in.NewestCommentTime,
+		FeaturedCommunity:      featuredCommunity,
+		FeaturedLocal:          featuredLocal,
+	}
+}
+
+// ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
+// canonical one, applying both conversions above.
+func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {
+	return lemmy017.PostView{
+		Post:                       in.Post,
+		Creator:                    ConvertPersonTo017(in.Creator),
+		Community:                  in.Community,
+		CreatorBannedFromCommunity: in.CreatorBannedFromCommunity,
+		Counts:                     ConvertPostAggregatesTo017(in.Counts, in.Post.FeaturedCommunity, in.Post.FeaturedLocal),
+		Subscribed:                 in.Subscribed,
+		Saved:                      in.Saved,
+		Read:                       in.Read,
+		CreatorBlocked:             in.CreatorBlocked,
+		MyVote:                     in.MyVote,
+		UnreadComments:             in.UnreadComments,
+	}
+}
