@@ -15,7 +15,7 @@ func init() {
 	postController := controller.NewPostController(activeBackend, activeFrontend)
 	commentController := controller.NewCommentController(activeBackend, activeFrontend)
 	communityController := controller.NewCommunityController(piefed, activeFrontend)
-	searchController := controller.NewSearchController(piefed)
+	searchController := controller.NewSearchController(piefed, activeFrontend)
 	uploadController := controller.NewUploadController(piefed)
 
 	// implemented

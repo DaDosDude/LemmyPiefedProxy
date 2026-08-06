@@ -3,28 +3,30 @@ package controller
 import (
 	lemmyModel "LemmyBeProxy/dto/model/lemmy"
 	piefedModel "LemmyBeProxy/dto/model/piefed"
-	"LemmyBeProxy/dto/request/lemmy"
 	"LemmyBeProxy/dto/request/piefed"
 	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
 	"LemmyBeProxy/helper"
 	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
+	"LemmyBeProxy/service/frontend"
 	pfService "LemmyBeProxy/service/piefed"
 	goHttp "net/http"
 )
 
 type SearchController struct {
-	piefed *pfService.Piefed
+	piefed   *pfService.Piefed
+	frontend frontend.Frontend
 }
 
-func NewSearchController(piefed *pfService.Piefed) *SearchController {
+func NewSearchController(piefed *pfService.Piefed, frontend frontend.Frontend) *SearchController {
 	return &SearchController{
-		piefed: piefed,
+		piefed:   piefed,
+		frontend: frontend,
 	}
 }
 
 func (receiver *SearchController) Search(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.SearchRequest](request)
+	reqDto, err := receiver.frontend.ParseSearchRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -47,14 +49,13 @@ func (receiver *SearchController) Search(request *http.Request) (*http.Response,
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.SearchResponse{
-			Type:        converter.ConvertSearchType(resp.Type),
-			Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityView),
-			Posts:       helper.MapSlice(resp.Posts, converter.ConvertPostView),
-			Users:       helper.MapSlice(resp.Users, converter.ConvertPersonView),
-			Comments:    helper.MapSlice(resp.Comments, converter.ConvertCommentView),
-		},
-	}, nil
+	canonical := &lemmyResponse.SearchResponse{
+		Type:        converter.ConvertSearchType(resp.Type),
+		Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityView),
+		Posts:       helper.MapSlice(resp.Posts, converter.ConvertPostView),
+		Users:       helper.MapSlice(resp.Users, converter.ConvertPersonView),
+		Comments:    helper.MapSlice(resp.Comments, converter.ConvertCommentView),
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildSearchResponse(canonical)}, nil
 }

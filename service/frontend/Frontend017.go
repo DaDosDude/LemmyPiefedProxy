@@ -345,3 +345,21 @@ func (receiver *Frontend017) BuildBlockPersonResponse(resp *lemmyResponse.BlockP
 		PersonView: converter.ConvertPersonViewTo017(resp.PersonView),
 	}
 }
+
+// ParseSearchRequest reuses the canonical parse directly — 0.17.2's
+// real Search matches our canonical model's fields exactly (creator_id
+// isn't supported on either side, a pre-existing Piefed limitation, not
+// something specific to 0.17.x).
+func (receiver *Frontend017) ParseSearchRequest(request *http.Request) (*lemmyRequest.SearchRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.SearchRequest](request)
+}
+
+func (receiver *Frontend017) BuildSearchResponse(resp *lemmyResponse.SearchResponse) any {
+	return &lemmyResponse017.SearchResponse{
+		Type:        string(resp.Type),
+		Comments:    helper.MapSlice(resp.Comments, converter.ConvertCommentViewTo017),
+		Posts:       helper.MapSlice(resp.Posts, converter.ConvertPostViewTo017),
+		Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityViewTo017),
+		Users:       helper.MapSlice(resp.Users, converter.ConvertPersonViewTo017),
+	}
+}

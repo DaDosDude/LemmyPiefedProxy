@@ -81,9 +81,10 @@ curl -s "https://your-domain.example/api/v3/site" | head -c 200
 - Lemmy 0.18.x authentication convention (`auth` in the request body or
   query string instead of an `Authorization` header) — applied centrally
   to every route, not endpoint-specific
-- Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, Community, and
-  User (except `save_user_settings`, see below) endpoints only so far,
-  verified against Lemmy's real 0.17.2 source
+- Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, Community,
+  User (except `save_user_settings`, see below), and Search endpoints,
+  verified against Lemmy's real 0.17.2 source. Site and Upload haven't
+  been checked yet — see Features not working yet.
 
 **Endpoints implemented and tested against a live Piefed instance:**
 `user/login`, `user/unread_count`, `user`, `user/block`,
@@ -101,10 +102,11 @@ Search, Site, and Upload controllers still talk to a Piefed-shaped
 client directly regardless of `BACKEND_TYPE` — not migrated yet.
 
 **Frontend pluggability (0.17.x wire format) covers Post, Comment,
-Community, and most of User.** Search, Site, and Upload still assume the
+Community, Search, and most of User.** Site and Upload still assume the
 current wire format directly regardless of `FRONTEND_VERSION` — not
-migrated yet. The two axes are independent and don't move in lockstep:
-Community and User are on the Frontend axis but not the Backend one.
+checked or migrated yet. The two axes are independent and don't move in
+lockstep: Community, User, and Search are on the Frontend axis but not
+the Backend one.
 
 **`save_user_settings` isn't part of the 0.17.x migration yet.** Real
 0.17.x encodes `default_sort_type`/`default_listing_type` as raw numeric

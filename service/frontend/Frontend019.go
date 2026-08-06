@@ -148,3 +148,11 @@ func (receiver *Frontend019) ParseBlockPersonRequest(request *http.Request) (*le
 func (receiver *Frontend019) BuildBlockPersonResponse(resp *lemmyResponse.BlockPersonResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) ParseSearchRequest(request *http.Request) (*lemmyRequest.SearchRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.SearchRequest](request)
+}
+
+func (receiver *Frontend019) BuildSearchResponse(resp *lemmyResponse.SearchResponse) any {
+	return resp
+}
