@@ -88,3 +88,35 @@ func (receiver *Frontend019) ParseCreateCommentLikeRequest(request *http.Request
 func (receiver *Frontend019) BuildLikeCommentResponse(resp *lemmyResponse.GetCommentResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) ParseGetCommunityRequest(request *http.Request) (*lemmyRequest.GetCommunityRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetCommunityRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetCommunityResponse(resp *lemmyResponse.GetCommunityResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseGetCommunitiesRequest(request *http.Request) (*lemmyRequest.GetCommunitiesRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetCommunitiesRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetCommunitiesResponse(resp *lemmyResponse.GetCommunitiesResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseFollowCommunityRequest(request *http.Request) (*lemmyRequest.FollowCommunityRequest, error) {
+	return helper.ParseRequest[lemmyRequest.FollowCommunityRequest](request)
+}
+
+func (receiver *Frontend019) BuildCommunityResponse(resp *lemmyResponse.CommunityResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseBlockCommunityRequest(request *http.Request) (*lemmyRequest.BlockCommunityRequest, error) {
+	return helper.ParseRequest[lemmyRequest.BlockCommunityRequest](request)
+}
+
+func (receiver *Frontend019) BuildBlockCommunityResponse(resp *lemmyResponse.BlockCommunityResponse) any {
+	return resp
+}

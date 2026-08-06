@@ -3,28 +3,36 @@ package controller
 import (
 	lemmyModel "LemmyBeProxy/dto/model/lemmy"
 	piefedModel "LemmyBeProxy/dto/model/piefed"
-	"LemmyBeProxy/dto/request/lemmy"
 	"LemmyBeProxy/dto/request/piefed"
 	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
 	"LemmyBeProxy/helper"
 	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
+	"LemmyBeProxy/service/frontend"
 	pfService "LemmyBeProxy/service/piefed"
 	goHttp "net/http"
 )
 
+// CommunityController now uses frontend.Frontend for parsing/building
+// (wire-format-agnostic), but still calls the raw Piefed client directly
+// for the actual backend call — Community hasn't been migrated onto
+// backend.Backend yet, only Post and Comment have. The two interfaces
+// are independent axes; this controller is on the Frontend axis only
+// for now.
 type CommunityController struct {
-	piefed *pfService.Piefed
+	piefed   *pfService.Piefed
+	frontend frontend.Frontend
 }
 
-func NewCommunityController(piefed *pfService.Piefed) *CommunityController {
+func NewCommunityController(piefed *pfService.Piefed, frontend frontend.Frontend) *CommunityController {
 	return &CommunityController{
-		piefed: piefed,
+		piefed:   piefed,
+		frontend: frontend,
 	}
 }
 
 func (receiver *CommunityController) GetCommunity(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.GetCommunityRequest](request)
+	reqDto, err := receiver.frontend.ParseGetCommunityRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -37,17 +45,16 @@ func (receiver *CommunityController) GetCommunity(request *http.Request) (*http.
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.GetCommunityResponse{
-			CommunityView: converter.ConvertCommunityView(resp.CommunityView),
-			Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorView),
-		},
-	}, nil
+	canonical := &lemmyResponse.GetCommunityResponse{
+		CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+		Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorView),
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommunityResponse(canonical)}, nil
 }
 
 func (receiver *CommunityController) GetCommunities(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.GetCommunitiesRequest](request)
+	reqDto, err := receiver.frontend.ParseGetCommunitiesRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -67,16 +74,15 @@ func (receiver *CommunityController) GetCommunities(request *http.Request) (*htt
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.GetCommunitiesResponse{
-			Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityView),
-		},
-	}, nil
+	canonical := &lemmyResponse.GetCommunitiesResponse{
+		Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityView),
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommunitiesResponse(canonical)}, nil
 }
 
 func (receiver *CommunityController) FollowCommunity(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.FollowCommunityRequest](request)
+	reqDto, err := receiver.frontend.ParseFollowCommunityRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -89,17 +95,16 @@ func (receiver *CommunityController) FollowCommunity(request *http.Request) (*ht
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.CommunityResponse{
-			CommunityView:       converter.ConvertCommunityView(resp.CommunityView),
-			DiscussionLanguages: resp.DiscussionLanguages,
-		},
-	}, nil
+	canonical := &lemmyResponse.CommunityResponse{
+		CommunityView:       converter.ConvertCommunityView(resp.CommunityView),
+		DiscussionLanguages: resp.DiscussionLanguages,
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildCommunityResponse(canonical)}, nil
 }
 
 func (receiver *CommunityController) BlockCommunity(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.BlockCommunityRequest](request)
+	reqDto, err := receiver.frontend.ParseBlockCommunityRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -112,11 +117,10 @@ func (receiver *CommunityController) BlockCommunity(request *http.Request) (*htt
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.BlockCommunityResponse{
-			Blocked:       resp.Blocked,
-			CommunityView: converter.ConvertCommunityView(resp.CommunityView),
-		},
-	}, nil
+	canonical := &lemmyResponse.BlockCommunityResponse{
+		Blocked:       resp.Blocked,
+		CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildBlockCommunityResponse(canonical)}, nil
 }

@@ -236,3 +236,69 @@ func (receiver *Frontend017) BuildLikeCommentResponse(resp *lemmyResponse.GetCom
 		RecipientIds: resp.RecipientIds,
 	}
 }
+
+// ParseGetCommunityRequest reuses the canonical parse directly — 0.17.2's
+// real GetCommunity (id, name, auth) matches our canonical model exactly.
+func (receiver *Frontend017) ParseGetCommunityRequest(request *http.Request) (*lemmyRequest.GetCommunityRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetCommunityRequest](request)
+}
+
+func (receiver *Frontend017) BuildGetCommunityResponse(resp *lemmyResponse.GetCommunityResponse) any {
+	return &lemmyResponse017.GetCommunityResponse{
+		CommunityView:       converter.ConvertCommunityViewTo017(resp.CommunityView),
+		Site:                nil,
+		Moderators:          resp.Moderators,
+		Online:              0,
+		DiscussionLanguages: []uint{},
+		DefaultPostLanguage: nil,
+	}
+}
+
+func (receiver *Frontend017) ParseGetCommunitiesRequest(request *http.Request) (*lemmyRequest.GetCommunitiesRequest, error) {
+	reqDto, err := helper.ParseRequestQuery[lemmyRequest017.GetCommunitiesRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyRequest.GetCommunitiesRequest{
+		Type:  reqDto.Type,
+		Sort:  reqDto.Sort,
+		Page:  reqDto.Page,
+		Limit: reqDto.Limit,
+		// ShowNsfw doesn't exist in 0.17.x — left unset.
+	}, nil
+}
+
+func (receiver *Frontend017) BuildGetCommunitiesResponse(resp *lemmyResponse.GetCommunitiesResponse) any {
+	return &lemmyResponse017.GetCommunitiesResponse{
+		Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityViewTo017),
+	}
+}
+
+// ParseFollowCommunityRequest reuses the canonical parse directly —
+// 0.17.2's real FollowCommunity (community_id, follow, auth) matches
+// exactly.
+func (receiver *Frontend017) ParseFollowCommunityRequest(request *http.Request) (*lemmyRequest.FollowCommunityRequest, error) {
+	return helper.ParseRequest[lemmyRequest.FollowCommunityRequest](request)
+}
+
+func (receiver *Frontend017) BuildCommunityResponse(resp *lemmyResponse.CommunityResponse) any {
+	return &lemmyResponse017.CommunityResponse{
+		CommunityView:       converter.ConvertCommunityViewTo017(resp.CommunityView),
+		DiscussionLanguages: resp.DiscussionLanguages,
+	}
+}
+
+// ParseBlockCommunityRequest reuses the canonical parse directly —
+// 0.17.2's real BlockCommunity (community_id, block, auth) matches
+// exactly.
+func (receiver *Frontend017) ParseBlockCommunityRequest(request *http.Request) (*lemmyRequest.BlockCommunityRequest, error) {
+	return helper.ParseRequest[lemmyRequest.BlockCommunityRequest](request)
+}
+
+func (receiver *Frontend017) BuildBlockCommunityResponse(resp *lemmyResponse.BlockCommunityResponse) any {
+	return &lemmyResponse017.BlockCommunityResponse{
+		Blocked:       resp.Blocked,
+		CommunityView: converter.ConvertCommunityViewTo017(resp.CommunityView),
+	}
+}

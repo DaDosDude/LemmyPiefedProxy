@@ -99,6 +99,35 @@ func ConvertCommentViewTo017(in lemmy.CommentView) lemmy017.CommentView {
 	}
 }
 
+// ConvertCommunityAggregatesTo017 fills in the field 0.17.2's real
+// CommunityAggregates requires that our canonical model doesn't track —
+// same extra-id pattern as Post/CommentAggregates.
+func ConvertCommunityAggregatesTo017(in lemmy.CommunityAggregates) lemmy017.CommunityAggregates {
+	return lemmy017.CommunityAggregates{
+		Id:                  in.CommunityId,
+		CommunityId:         in.CommunityId,
+		Subscribers:         in.Subscribers,
+		Posts:               in.Posts,
+		Comments:            in.Comments,
+		Published:           in.Published,
+		UsersActiveDay:      in.UsersActiveDay,
+		UsersActiveWeek:     in.UsersActiveWeek,
+		UsersActiveMonth:    in.UsersActiveMonth,
+		UsersActiveHalfYear: in.UsersActiveHalfYear,
+	}
+}
+
+// ConvertCommunityViewTo017 assembles a full 0.17.x-shaped CommunityView
+// from the canonical one.
+func ConvertCommunityViewTo017(in lemmy.CommunityView) lemmy017.CommunityView {
+	return lemmy017.CommunityView{
+		Community:  in.Community,
+		Subscribed: in.Subscribed,
+		Blocked:    in.Blocked,
+		Counts:     ConvertCommunityAggregatesTo017(in.Counts),
+	}
+}
+
 // ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
 // canonical one, applying both conversions above.
 func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {

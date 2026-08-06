@@ -15,8 +15,8 @@ import (
 // needs to know or care which frontend or backend version is actually in
 // play on either side of it.
 //
-// This interface covers Post and Comment methods so far, mirroring how
-// backend.Backend started with the same two slices.
+// This interface covers Post, Comment, and Community methods so far,
+// mirroring how backend.Backend started with Post and Comment.
 //
 // Known gap: Frontend017's BuildSuccessResponse (used for mark_as_read)
 // returns the canonical {success: bool} shape rather than the full
@@ -55,4 +55,16 @@ type Frontend interface {
 
 	ParseCreateCommentLikeRequest(request *http.Request) (*lemmyRequest.CreateCommentLikeRequest, error)
 	BuildLikeCommentResponse(resp *lemmyResponse.GetCommentResponse) any
+
+	ParseGetCommunityRequest(request *http.Request) (*lemmyRequest.GetCommunityRequest, error)
+	BuildGetCommunityResponse(resp *lemmyResponse.GetCommunityResponse) any
+
+	ParseGetCommunitiesRequest(request *http.Request) (*lemmyRequest.GetCommunitiesRequest, error)
+	BuildGetCommunitiesResponse(resp *lemmyResponse.GetCommunitiesResponse) any
+
+	ParseFollowCommunityRequest(request *http.Request) (*lemmyRequest.FollowCommunityRequest, error)
+	BuildCommunityResponse(resp *lemmyResponse.CommunityResponse) any
+
+	ParseBlockCommunityRequest(request *http.Request) (*lemmyRequest.BlockCommunityRequest, error)
+	BuildBlockCommunityResponse(resp *lemmyResponse.BlockCommunityResponse) any
 }

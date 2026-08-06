@@ -14,7 +14,7 @@ func init() {
 	siteController := controller.NewSiteController(piefed, activityPub, simulateLemmy)
 	postController := controller.NewPostController(activeBackend, activeFrontend)
 	commentController := controller.NewCommentController(activeBackend, activeFrontend)
-	communityController := controller.NewCommunityController(piefed)
+	communityController := controller.NewCommunityController(piefed, activeFrontend)
 	searchController := controller.NewSearchController(piefed)
 	uploadController := controller.NewUploadController(piefed)
 
