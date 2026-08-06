@@ -81,8 +81,8 @@ curl -s "https://your-domain.example/api/v3/site" | head -c 200
 - Lemmy 0.18.x authentication convention (`auth` in the request body or
   query string instead of an `Authorization` header) — applied centrally
   to every route, not endpoint-specific
-- Lemmy 0.17.x wire format (e.g. lemmyBB) — Post and Comment endpoints
-  only so far, verified against Lemmy's real 0.17.2 source
+- Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, and Community
+  endpoints only so far, verified against Lemmy's real 0.17.2 source
 
 **Endpoints implemented and tested against a live Piefed instance:**
 `user/login`, `user/unread_count`, `user`, `user/block`,
@@ -95,11 +95,15 @@ and fetch, outside `/api/v3` since that's where real clients send them).
 
 ## Features not working yet
 
-**Backend and Frontend pluggability only covers Post and Comment so far.**
-Community, User, Search, Site, and Upload controllers still talk to a
-Piefed-shaped client and the current wire format directly, regardless of
-`BACKEND_TYPE` or `FRONTEND_VERSION`. Same interfaces, same pattern,
-just not migrated yet.
+**Backend pluggability only covers Post and Comment.** Community, User,
+Search, Site, and Upload controllers still talk to a Piefed-shaped
+client directly regardless of `BACKEND_TYPE` — not migrated yet.
+
+**Frontend pluggability (0.17.x wire format) covers Post, Comment, and
+Community.** User, Search, Site, and Upload still assume the current
+wire format directly regardless of `FRONTEND_VERSION` — not migrated
+yet. The two axes are independent and don't move in lockstep: Community
+is on the Frontend axis but not the Backend one.
 
 **Not implemented in Piefed itself**, confirmed from Piefed's own source
 — not a translation gap, there's nothing on Piefed's side to translate
