@@ -1,7 +1,6 @@
 package lemmy017
 
 import (
-	"LemmyBeProxy/dto/model/lemmy"
 	model017 "LemmyBeProxy/dto/model/lemmy017"
 )
 
@@ -11,9 +10,9 @@ import (
 // reusing canonical CommentView/PostView here would reintroduce the same
 // nested-type gap already fixed for those endpoints directly.
 type GetUserResponse struct {
-	Comments   []model017.CommentView         `json:"comments" validate:"required"`
-	Moderates  []lemmy.CommunityModeratorView `json:"moderates" validate:"required"`
-	PersonView model017.PersonView            `json:"person_view" validate:"required"`
-	Posts      []model017.PostView            `json:"posts" validate:"required"`
+	Comments   []model017.CommentView            `json:"comments" validate:"required"`
+	Moderates  []model017.CommunityModeratorView `json:"moderates" validate:"required"`
+	PersonView model017.PersonView               `json:"person_view" validate:"required"`
+	Posts      []model017.PostView               `json:"posts" validate:"required"`
 }
 

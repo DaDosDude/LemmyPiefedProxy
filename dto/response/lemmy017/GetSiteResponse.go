@@ -10,17 +10,14 @@ import (
 // is always nil here (Option<FederatedInstances> tolerates absence) —
 // our canonical model has no equivalent type at all, and mapping
 // Piefed's federation data into this shape hasn't been done, a separate
-// piece of work from this round. MyUser is deliberately NOT included
-// yet either — that's a substantially larger, separate slice (six
-// nested collections, the numeric sort-type enum problem) being tackled
-// as its own follow-up rather than rushed in here. AllLanguages and
-// Taglines reuse canonical directly — both confirmed field-by-field
-// clean, unlike everything else in this response.
+// piece of work. AllLanguages and Taglines reuse canonical directly —
+// both confirmed field-by-field clean.
 type GetSiteResponse struct {
 	SiteView            model017.SiteView     `json:"site_view" validate:"required"`
 	Admins              []model017.PersonView `json:"admins" validate:"required"`
 	Online              uint                  `json:"online" validate:"required"`
 	Version             string                `json:"version" validate:"required"`
+	MyUser              *model017.MyUserInfo  `json:"my_user,omitempty"`
 	AllLanguages        []lemmy.Language      `json:"all_languages" validate:"required"`
 	DiscussionLanguages []uint                `json:"discussion_languages" validate:"required"`
 	Taglines            []lemmy.Tagline       `json:"taglines,omitempty"`

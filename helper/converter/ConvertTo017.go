@@ -3,6 +3,7 @@ package converter
 import (
 	"LemmyBeProxy/dto/model/lemmy"
 	"LemmyBeProxy/dto/model/lemmy017"
+	"LemmyBeProxy/helper"
 )
 
 // ConvertPersonTo017 fills in the two fields 0.17.2's real PersonSafe
@@ -239,6 +240,146 @@ func ConvertSiteViewTo017(in lemmy.SiteView) lemmy017.SiteView {
 	}
 }
 
+// sortTypeTo017Index maps canonical SortType to Lemmy 0.17.2's real
+// numeric enum ordering (confirmed against Lemmy's own source: Active,
+// Hot, New, Old, TopDay, TopWeek, TopMonth, TopYear, TopAll,
+// MostComments, NewComments — in that order, 0-indexed). Several
+// canonical values have no 0.17.2 equivalent at all (Scaled,
+// Controversial, TopHour, TopSixHour, TopTwelveHour, TopThreeMonths,
+// TopSixMonths, TopNineMonths — all added in later Lemmy versions) and
+// map to the closest reasonable existing value rather than an arbitrary
+// default.
+var sortTypeTo017Index = map[lemmy.SortType]int16{
+	lemmy.SortTypeActive:        0,
+	lemmy.SortTypeHot:           1,
+	lemmy.SortTypeNew:           2,
+	lemmy.SortTypeOld:           3,
+	lemmy.SortTypeTopDay:        4,
+	lemmy.SortTypeTopWeek:       5,
+	lemmy.SortTypeTopMonth:      6,
+	lemmy.SortTypeTopYear:       7,
+	lemmy.SortTypeTopAll:        8,
+	lemmy.SortTypeMostComments:  9,
+	lemmy.SortTypeNewComments:   10,
+	// No 0.17.2 equivalent — mapped to the closest existing value.
+	lemmy.SortTypeScaled:         0, // Active
+	lemmy.SortTypeControversial:  1, // Hot
+	lemmy.SortTypeTopHour:        4, // TopDay
+	lemmy.SortTypeTopSixHour:     4, // TopDay
+	lemmy.SortTypeTopTwelveHour:  4, // TopDay
+	lemmy.SortTypeTopThreeMonths: 6, // TopMonth
+	lemmy.SortTypeTopSixMonths:   6, // TopMonth
+	lemmy.SortTypeTopNineMonths:  6, // TopMonth
+}
+
+// ConvertSortTypeToIndex017 converts a canonical SortType to 0.17.2's
+// real numeric enum index. Falls back to Hot (1) for anything
+// unrecognized, same fallback philosophy as ClampDefaultSortType.
+func ConvertSortTypeToIndex017(in lemmy.SortType) int16 {
+	if index, ok := sortTypeTo017Index[in]; ok {
+		return index
+	}
+	return 1
+}
+
+// listingTypeTo017Index maps canonical ListingType to 0.17.2's real
+// numeric ordering (All, Local, Subscribed). ModeratorView is a later
+// addition with no 0.17.2 equivalent, mapped to All.
+var listingTypeTo017Index = map[lemmy.ListingType]int16{
+	lemmy.ListingTypeAll:        0,
+	lemmy.ListingTypeLocal:      1,
+	lemmy.ListingTypeSubscribed: 2,
+	lemmy.ListingTypeModeratorView: 0, // All
+}
+
+// ConvertListingTypeToIndex017 converts a canonical ListingType to
+// 0.17.2's real numeric enum index. Falls back to All (0).
+func ConvertListingTypeToIndex017(in lemmy.ListingType) int16 {
+	if index, ok := listingTypeTo017Index[in]; ok {
+		return index
+	}
+	return 0
+}
+
+func ConvertCommunityModeratorViewTo017(in lemmy.CommunityModeratorView) lemmy017.CommunityModeratorView {
+	return lemmy017.CommunityModeratorView{
+		Community: in.Community,
+		Moderator: ConvertPersonTo017(in.Moderator),
+	}
+}
+
+func ConvertCommunityFollowerViewTo017(in lemmy.CommunityFollowerView) lemmy017.CommunityFollowerView {
+	return lemmy017.CommunityFollowerView{
+		Community: in.Community,
+		Follower:  ConvertPersonTo017(in.Follower),
+	}
+}
+
+func ConvertCommunityBlockViewTo017(in lemmy.CommunityBlockView) lemmy017.CommunityBlockView {
+	return lemmy017.CommunityBlockView{
+		Person:    ConvertPersonTo017(in.Person),
+		Community: in.Community,
+	}
+}
+
+func ConvertPersonBlockViewTo017(in lemmy.PersonBlockView) lemmy017.PersonBlockView {
+	return lemmy017.PersonBlockView{
+		Person: ConvertPersonTo017(in.Person),
+		Target: ConvertPersonTo017(in.Target),
+	}
+}
+
+// ConvertLocalUserSettingsTo017 handles the numeric sort/listing type
+// encoding and the two fields our canonical model never tracked at all
+// (ValidatorTime, ShowNewPostNotifs) — see lemmy017.LocalUserSettings's
+// own comment.
+func ConvertLocalUserSettingsTo017(in lemmy.LocalUser) lemmy017.LocalUserSettings {
+	return lemmy017.LocalUserSettings{
+		Id:                       in.Id,
+		PersonId:                 in.PersonId,
+		Email:                    in.Email,
+		ShowNsfw:                 in.ShowNsfw,
+		Theme:                    in.Theme,
+		DefaultSortType:          ConvertSortTypeToIndex017(in.DefaultSortType),
+		DefaultListingType:       ConvertListingTypeToIndex017(in.DefaultListingType),
+		InterfaceLanguage:        in.InterfaceLanguage,
+		ShowAvatars:              in.ShowAvatars,
+		SendNotificationsToEmail: in.SendNotificationsToEmail,
+		ValidatorTime:            "1970-01-01T00:00:00Z",
+		ShowBotAccounts:          in.ShowBotAccounts,
+		ShowScores:               in.ShowScores,
+		ShowReadPosts:            in.ShowReadPosts,
+		ShowNewPostNotifs:        true,
+		EmailVerified:            in.EmailVerified,
+		AcceptedApplication:      in.AcceptedApplication,
+	}
+}
+
+func ConvertLocalUserSettingsViewTo017(in lemmy.LocalUserView) lemmy017.LocalUserSettingsView {
+	return lemmy017.LocalUserSettingsView{
+		LocalUser: ConvertLocalUserSettingsTo017(in.LocalUser),
+		Person:    ConvertPersonTo017(in.Person),
+		Counts:    ConvertPersonAggregatesTo017(in.Counts),
+	}
+}
+
+// ConvertMyUserInfoTo017 assembles a full 0.17.x-shaped MyUserInfo from
+// the canonical one. InstanceBlocks is dropped — 0.17.2 has no such
+// concept.
+func ConvertMyUserInfoTo017(in *lemmy.MyUserInfo) *lemmy017.MyUserInfo {
+	if in == nil {
+		return nil
+	}
+
+	return &lemmy017.MyUserInfo{
+		LocalUserView:       ConvertLocalUserSettingsViewTo017(in.LocalUserView),
+		Follows:             helper.MapSlice(in.Follows, ConvertCommunityFollowerViewTo017),
+		Moderates:           helper.MapSlice(in.Moderates, ConvertCommunityModeratorViewTo017),
+		CommunityBlocks:     helper.MapSlice(in.CommunityBlocks, ConvertCommunityBlockViewTo017),
+		PersonBlocks:        helper.MapSlice(in.PersonBlocks, ConvertPersonBlockViewTo017),
+		DiscussionLanguages: in.DiscussionLanguages,
+	}
+}
 // ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
 // canonical one, applying both conversions above.
 func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {

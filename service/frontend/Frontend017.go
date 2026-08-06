@@ -62,15 +62,12 @@ func (receiver *Frontend017) ParseGetPostRequest(request *http.Request) (*lemmyR
 func (receiver *Frontend017) BuildGetPostResponse(resp *lemmyResponse.GetPostResponse) any {
 	// 0.17.x has no cross_posts field and expects an "online" viewer
 	// count our canonical model doesn't track at all — 0 is the honest
-	// value here, not a guess standing in for real data. CommunityView
-	// and Moderators are passed through unchanged — confirmed clean for
-	// the outer Community shape, but CommunityView's own nested
-	// aggregates haven't been checked field-by-field against 0.17.2 the
-	// way Person/PostAggregates have, a remaining open risk.
+	// Online is 0, an honest not-guessed value here rather than a guess
+	// standing in for real data.
 	return &lemmyResponse017.GetPostResponse{
 		PostView:      converter.ConvertPostViewTo017(resp.PostView),
-		CommunityView: resp.CommunityView,
-		Moderators:    resp.Moderators,
+		CommunityView: converter.ConvertCommunityViewTo017(resp.CommunityView),
+		Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorViewTo017),
 		Online:        0,
 	}
 }
@@ -247,7 +244,7 @@ func (receiver *Frontend017) BuildGetCommunityResponse(resp *lemmyResponse.GetCo
 	return &lemmyResponse017.GetCommunityResponse{
 		CommunityView:       converter.ConvertCommunityViewTo017(resp.CommunityView),
 		Site:                nil,
-		Moderators:          resp.Moderators,
+		Moderators:          helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorViewTo017),
 		Online:              0,
 		DiscussionLanguages: []uint{},
 		DefaultPostLanguage: nil,
@@ -327,7 +324,7 @@ func (receiver *Frontend017) ParseGetUserRequest(request *http.Request) (*lemmyR
 func (receiver *Frontend017) BuildGetUserResponse(resp *lemmyResponse.GetUserResponse) any {
 	return &lemmyResponse017.GetUserResponse{
 		Comments:   helper.MapSlice(resp.Comments, converter.ConvertCommentViewTo017),
-		Moderates:  resp.Moderates,
+		Moderates:  helper.MapSlice(resp.Moderates, converter.ConvertCommunityModeratorViewTo017),
 		PersonView: converter.ConvertPersonViewTo017(resp.PersonView),
 		Posts:      helper.MapSlice(resp.Posts, converter.ConvertPostViewTo017),
 	}
@@ -364,14 +361,16 @@ func (receiver *Frontend017) BuildSearchResponse(resp *lemmyResponse.SearchRespo
 	}
 }
 
-// BuildGetSiteResponse only covers SiteView so far — see the interface's
-// own comment on why MyUser is deliberately absent this round.
+// BuildGetSiteResponse now covers MyUser too, using the full MyUserInfo
+// translation built for this — see the interface's own comment for the
+// remaining known gap (FederatedInstances).
 func (receiver *Frontend017) BuildGetSiteResponse(resp *lemmyResponse.GetSiteResponse) any {
 	return &lemmyResponse017.GetSiteResponse{
 		SiteView:            converter.ConvertSiteViewTo017(resp.SiteView),
 		Admins:              helper.MapSlice(resp.Admins, converter.ConvertPersonViewTo017),
 		Online:              0,
 		Version:             resp.Version,
+		MyUser:              converter.ConvertMyUserInfoTo017(resp.MyUser),
 		AllLanguages:        resp.AllLanguages,
 		DiscussionLanguages: resp.DiscussionLanguages,
 		Taglines:            resp.Taglines,
