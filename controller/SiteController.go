@@ -8,6 +8,7 @@ import (
 	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
 	"LemmyBeProxy/service"
+	"LemmyBeProxy/service/frontend"
 	"LemmyBeProxy/service/piefed"
 	goHttp "net/http"
 )
@@ -16,17 +17,20 @@ type SiteController struct {
 	piefed        *piefed.Piefed
 	activityPub   *service.ActivityPub
 	simulateLemmy bool
+	frontend      frontend.Frontend
 }
 
 func NewSiteController(
 	piefed *piefed.Piefed,
 	activityPub *service.ActivityPub,
 	simulateLemmy bool,
+	frontend frontend.Frontend,
 ) *SiteController {
 	return &SiteController{
 		piefed:        piefed,
 		simulateLemmy: simulateLemmy,
 		activityPub:   activityPub,
+		frontend:      frontend,
 	}
 }
 
@@ -48,20 +52,19 @@ func (receiver *SiteController) Site(request *http.Request) (*http.Response, err
 		version = resp.Version
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmy.GetSiteResponse{
-			Admins:       helper.MapSlice(resp.Admins, converter.ConvertPersonView),
-			AllLanguages: helper.MapSlice(resp.Site.AllLanguages, converter.ConvertLanguageView),
-			BlockedUrls:  []lemmyModel.LocalSiteUrlBlocklist{},
-			CustomEmojis: []lemmyModel.CustomEmojiView{},
-			DiscussionLanguages: helper.MapSlice(resp.Site.AllLanguages, func(in piefedModel.LanguageView) uint {
-				return in.Id
-			}),
-			MyUser:   converter.ConvertMyUserInfo(resp.MyUser, apActor),
-			SiteView: converter.ConvertSiteToView(&resp.Site, apActor),
-			Taglines: []lemmyModel.Tagline{},
-			Version:  version,
-		},
-	}, nil
+	canonical := &lemmy.GetSiteResponse{
+		Admins:       helper.MapSlice(resp.Admins, converter.ConvertPersonView),
+		AllLanguages: helper.MapSlice(resp.Site.AllLanguages, converter.ConvertLanguageView),
+		BlockedUrls:  []lemmyModel.LocalSiteUrlBlocklist{},
+		CustomEmojis: []lemmyModel.CustomEmojiView{},
+		DiscussionLanguages: helper.MapSlice(resp.Site.AllLanguages, func(in piefedModel.LanguageView) uint {
+			return in.Id
+		}),
+		MyUser:   converter.ConvertMyUserInfo(resp.MyUser, apActor),
+		SiteView: converter.ConvertSiteToView(&resp.Site, apActor),
+		Taglines: []lemmyModel.Tagline{},
+		Version:  version,
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetSiteResponse(canonical)}, nil
 }

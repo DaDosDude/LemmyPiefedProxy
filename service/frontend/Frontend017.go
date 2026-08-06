@@ -363,3 +363,18 @@ func (receiver *Frontend017) BuildSearchResponse(resp *lemmyResponse.SearchRespo
 		Users:       helper.MapSlice(resp.Users, converter.ConvertPersonViewTo017),
 	}
 }
+
+// BuildGetSiteResponse only covers SiteView so far — see the interface's
+// own comment on why MyUser is deliberately absent this round.
+func (receiver *Frontend017) BuildGetSiteResponse(resp *lemmyResponse.GetSiteResponse) any {
+	return &lemmyResponse017.GetSiteResponse{
+		SiteView:            converter.ConvertSiteViewTo017(resp.SiteView),
+		Admins:              helper.MapSlice(resp.Admins, converter.ConvertPersonViewTo017),
+		Online:              0,
+		Version:             resp.Version,
+		AllLanguages:        resp.AllLanguages,
+		DiscussionLanguages: resp.DiscussionLanguages,
+		Taglines:            resp.Taglines,
+		FederatedInstances:  nil,
+	}
+}

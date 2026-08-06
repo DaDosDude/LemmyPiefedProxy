@@ -82,9 +82,10 @@ curl -s "https://your-domain.example/api/v3/site" | head -c 200
   query string instead of an `Authorization` header) — applied centrally
   to every route, not endpoint-specific
 - Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, Community,
-  User (except `save_user_settings`, see below), and Search endpoints,
-  verified against Lemmy's real 0.17.2 source. Site and Upload haven't
-  been checked yet — see Features not working yet.
+  User (except `save_user_settings`, see below), Search, and Site
+  (`SiteView` only — `my_user` not yet included, see below) endpoints,
+  verified against Lemmy's real 0.17.2 source. Upload hasn't been
+  checked yet — see Features not working yet.
 
 **Endpoints implemented and tested against a live Piefed instance:**
 `user/login`, `user/unread_count`, `user`, `user/block`,
@@ -102,11 +103,21 @@ Search, Site, and Upload controllers still talk to a Piefed-shaped
 client directly regardless of `BACKEND_TYPE` — not migrated yet.
 
 **Frontend pluggability (0.17.x wire format) covers Post, Comment,
-Community, Search, and most of User.** Site and Upload still assume the
-current wire format directly regardless of `FRONTEND_VERSION` — not
-checked or migrated yet. The two axes are independent and don't move in
-lockstep: Community, User, and Search are on the Frontend axis but not
-the Backend one.
+Community, Search, most of User, and part of Site.** Upload still
+assumes the current wire format directly regardless of
+`FRONTEND_VERSION` — not checked yet. The two axes are independent and
+don't move in lockstep: Community, User, Search, and Site are on the
+Frontend axis but not the Backend one.
+
+**Site's `my_user` field isn't part of the 0.17.x migration yet.** Only
+`site_view` is translated so far. `my_user` — the logged-in user's own
+subscriptions, blocks, and moderated communities, used to render a
+correct subscribed feed and mod tools — is a substantially larger,
+separate slice (six nested collections, plus the same numeric sort-type
+enum problem `save_user_settings` has) genuinely deferred rather than
+rushed. A 0.17.x client currently gets a working site response, but no
+user-specific data from it regardless of login state — a real,
+temporary functional gap.
 
 **`save_user_settings` isn't part of the 0.17.x migration yet.** Real
 0.17.x encodes `default_sort_type`/`default_listing_type` as raw numeric

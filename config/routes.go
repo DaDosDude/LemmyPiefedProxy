@@ -11,7 +11,7 @@ func newRoute(path string, method router.HttpMethod, controller router.Controlle
 
 func init() {
 	userController := controller.NewUserController(piefed, activeFrontend)
-	siteController := controller.NewSiteController(piefed, activityPub, simulateLemmy)
+	siteController := controller.NewSiteController(piefed, activityPub, simulateLemmy, activeFrontend)
 	postController := controller.NewPostController(activeBackend, activeFrontend)
 	commentController := controller.NewCommentController(activeBackend, activeFrontend)
 	communityController := controller.NewCommunityController(piefed, activeFrontend)

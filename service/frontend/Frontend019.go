@@ -156,3 +156,7 @@ func (receiver *Frontend019) ParseSearchRequest(request *http.Request) (*lemmyRe
 func (receiver *Frontend019) BuildSearchResponse(resp *lemmyResponse.SearchResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) BuildGetSiteResponse(resp *lemmyResponse.GetSiteResponse) any {
+	return resp
+}

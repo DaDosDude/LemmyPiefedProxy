@@ -153,6 +153,92 @@ func ConvertPersonViewTo017(in lemmy.PersonView) lemmy017.PersonView {
 	}
 }
 
+// ConvertSiteAggregatesTo017 fills in the extra id field 0.17.2's real
+// SiteAggregates requires, same pattern as other Aggregates types.
+func ConvertSiteAggregatesTo017(in lemmy.SiteAggregates) lemmy017.SiteAggregates {
+	return lemmy017.SiteAggregates{
+		Id:                  in.SiteId,
+		SiteId:              in.SiteId,
+		Users:               in.Users,
+		Posts:               in.Posts,
+		Comments:            in.Comments,
+		Communities:         in.Communities,
+		UsersActiveDay:      in.UsersActiveDay,
+		UsersActiveWeek:     in.UsersActiveWeek,
+		UsersActiveMonth:    in.UsersActiveMonth,
+		UsersActiveHalfYear: in.UsersActiveHalfYear,
+	}
+}
+
+// ConvertLocalSiteRateLimitTo017 fills in the extra id field 0.17.2's
+// real LocalSiteRateLimit requires. ImportUserSettings fields are
+// simply dropped — 0.17.2 has no such concept.
+func ConvertLocalSiteRateLimitTo017(in lemmy.LocalSiteRateLimit) lemmy017.LocalSiteRateLimit {
+	return lemmy017.LocalSiteRateLimit{
+		Id:                in.LocalSiteId,
+		LocalSiteId:       in.LocalSiteId,
+		Message:           in.Message,
+		MessagePerSecond:  in.MessagePerSecond,
+		Post:              in.Post,
+		PostPerSecond:     in.PostPerSecond,
+		Register:          in.Register,
+		RegisterPerSecond: in.RegisterPerSecond,
+		Image:             in.Image,
+		ImagePerSecond:    in.ImagePerSecond,
+		Comment:           in.Comment,
+		CommentPerSecond:  in.CommentPerSecond,
+		Search:            in.Search,
+		SearchPerSecond:   in.SearchPerSecond,
+		Published:         in.Published,
+		Updated:           in.Updated,
+	}
+}
+
+// ConvertLocalSiteTo017 handles LocalSite's three genuinely missing
+// fields (defaulted honestly, see lemmy017.LocalSite's own comment) and
+// converts DefaultPostListingType/RegistrationMode from named string
+// types to plain strings for the wire.
+func ConvertLocalSiteTo017(in lemmy.LocalSite) lemmy017.LocalSite {
+	return lemmy017.LocalSite{
+		Id:                         in.Id,
+		SiteId:                     in.SiteId,
+		SiteSetup:                  in.SiteSetup,
+		EnableDownvotes:            in.EnableDownvotes,
+		EnableNsfw:                 in.EnableNsfw,
+		CommunityCreationAdminOnly: in.CommunityCreationAdminOnly,
+		RequireEmailVerification:   false,
+		ApplicationQuestion:        in.ApplicationQuestion,
+		PrivateInstance:            in.PrivateInstance,
+		DefaultTheme:               in.DefaultTheme,
+		DefaultPostListingType:     string(in.DefaultPostListingType),
+		LegalInformation:           in.LegalInformation,
+		HideModlogModNames:         in.HideModlogModNames,
+		ApplicationEmailAdmins:     in.ApplicationEmailAdmins,
+		SlurFilterRegex:            in.SlurFilterRegex,
+		ActorNameMaxLength:         in.ActorNameMaxLength,
+		FederationEnabled:          in.FederationEnabled,
+		FederationDebug:            false,
+		FederationWorkerCount:      0,
+		CaptchaEnabled:             in.CaptchaEnabled,
+		CaptchaDifficulty:          in.CaptchaDifficulty,
+		RegistrationMode:           string(in.RegistrationMode),
+		ReportsEmailAdmins:         in.ReportsEmailAdmin,
+		Published:                  in.Published,
+		Updated:                    in.Updated,
+	}
+}
+
+// ConvertSiteViewTo017 assembles a full 0.17.x-shaped SiteView from the
+// canonical one.
+func ConvertSiteViewTo017(in lemmy.SiteView) lemmy017.SiteView {
+	return lemmy017.SiteView{
+		Site:               in.Site,
+		LocalSite:          ConvertLocalSiteTo017(in.LocalSite),
+		LocalSiteRateLimit: ConvertLocalSiteRateLimitTo017(in.LocalSiteRateLimit),
+		Counts:             ConvertSiteAggregatesTo017(in.Counts),
+	}
+}
+
 // ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
 // canonical one, applying both conversions above.
 func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {
