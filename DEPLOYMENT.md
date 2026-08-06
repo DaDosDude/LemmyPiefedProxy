@@ -8,28 +8,29 @@ with Nginx or any other reverse proxy.
 
 ## 1. Decide on a domain
 
-Two options:
+**Give your frontend its own subdomain — this is the only option
+actually tested and recommended.** Your frontend (mlmym or whatever
+you're using) should live on its own subdomain regardless, since it
+renders full pages for real visitors and needs its own public HTTPS. A
+common pattern is `old.yourdomain.com`, with the API and image routes
+added to that same subdomain's block rather than your main domain. This
+is the setup this project was actually deployed and tested with.
 
-- **Keep your Piefed domain, add path routes.** Recommended if you don't
-  want a separate subdomain just for the API and image endpoints. Add
-  `/api/v3/*` and `/pictrs/image*` as routes on your existing domain that
-  forward to the proxy container, while everything else continues going
-  to Piefed as normal.
-
-- **Give your frontend its own subdomain.** Your frontend (mlmym or
-  whatever you're using) should live on its own subdomain regardless,
-  since it renders full pages for real visitors and needs its own public
-  HTTPS. A common pattern is `old.yourdomain.com`, with the API and image
-  routes added to that same subdomain's block rather than your main
-  domain. This keeps your main domain's behavior completely unchanged,
-  and nothing on it accidentally looks like a Lemmy server to apps or
-  federation tooling that might probe it. This is the approach used in
-  testing and described below.
-
-Avoid putting the proxy's API routes on your bare Piefed domain if you
-can. A Lemmy app pointed at that domain would log in and see instance
-metadata, then fail confusingly on almost everything else, since only
-the frontend subdomain actually has the full proxy surface behind it.
+Do **not** add the proxy's `/api/v3/*` routes on your existing bare
+Piefed domain, even though it might look convenient. Piefed itself
+already natively responds to `/api/v3/site` and
+`/api/v3/federated_instances` on that domain — a deliberate federation
+compatibility shim it ships with. Routing those same paths to the proxy
+instead would shadow that shim, and since other Lemmy/Piefed instances
+rely on it for actual server-to-server federation (not just client
+apps), this is a real conflict with untested consequences, not just a
+style preference. Keeping the proxy entirely on its own subdomain avoids
+this — your main domain's behavior stays completely unchanged, and
+nothing on it accidentally looks like a Lemmy server to federation
+tooling that probes it. A Lemmy app pointed at your bare domain instead
+would log in and see instance metadata, then fail confusingly on almost
+everything else, since only the frontend subdomain actually has the
+full proxy surface behind it.
 
 ## 2. Run the proxy and the frontend
 
