@@ -9,22 +9,32 @@ import (
 	"LemmyBeProxy/helper"
 	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
+	"LemmyBeProxy/service/frontend"
 	pfService "LemmyBeProxy/service/piefed"
 	goHttp "net/http"
 )
 
+// UserController uses frontend.Frontend for the endpoints migrated so
+// far (Login, GetUnreadCount, GetUser, BlockPerson). Register,
+// GetReportCount, and SaveUserSettings are unmigrated — Register and
+// GetReportCount are stub responses regardless of wire format, and
+// SaveUserSettings's 0.17.x translation is deferred (numeric sort-type
+// enum indices, a genuinely separate problem — see the project's
+// Features not working yet).
 type UserController struct {
-	piefed *pfService.Piefed
+	piefed   *pfService.Piefed
+	frontend frontend.Frontend
 }
 
-func NewUserController(piefed *pfService.Piefed) *UserController {
+func NewUserController(piefed *pfService.Piefed, frontend frontend.Frontend) *UserController {
 	return &UserController{
-		piefed: piefed,
+		piefed:   piefed,
+		frontend: frontend,
 	}
 }
 
 func (receiver *UserController) Login(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.LoginRequest](request)
+	reqDto, err := receiver.frontend.ParseLoginRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -37,12 +47,11 @@ func (receiver *UserController) Login(request *http.Request) (*http.Response, er
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.LoginResponse{
-			Jwt: resp.Jwt,
-		},
-	}, nil
+	canonical := &lemmyResponse.LoginResponse{
+		Jwt: resp.Jwt,
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildLoginResponse(canonical)}, nil
 }
 
 func (receiver *UserController) Register(request *http.Request) (*http.Response, error) {
@@ -60,14 +69,13 @@ func (receiver *UserController) GetUnreadCount(request *http.Request) (*http.Res
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.GetUnreadCountResponse{
-			Mentions:        resp.Mentions,
-			PrivateMessages: resp.PrivateMessages,
-			Replies:         resp.Replies,
-		},
-	}, nil
+	canonical := &lemmyResponse.GetUnreadCountResponse{
+		Mentions:        resp.Mentions,
+		PrivateMessages: resp.PrivateMessages,
+		Replies:         resp.Replies,
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetUnreadCountResponse(canonical)}, nil
 }
 
 func (receiver *UserController) GetReportCount(request *http.Request) (*http.Response, error) {
@@ -88,14 +96,14 @@ func (receiver *UserController) GetReportCount(request *http.Request) (*http.Res
 }
 
 func (receiver *UserController) GetUser(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequestQuery[lemmy.GetUserRequest](request)
+	reqDto, err := receiver.frontend.ParseGetUserRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
 	resp, err := receiver.piefed.GetUser(&piefed.GetUserRequest{
-		PersonId:  reqDto.PersonId,
-		Username:  reqDto.Username,
+		PersonId: reqDto.PersonId,
+		Username: reqDto.Username,
 		Sort: helper.SafeDereference(reqDto.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
 			return helper.ToPointer(converter.ReverseConvertSortType(in))
 		}),
@@ -107,19 +115,18 @@ func (receiver *UserController) GetUser(request *http.Request) (*http.Response, 
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.GetUserResponse{
-			Comments:   helper.MapSlice(resp.Comments, converter.ConvertCommentView),
-			Moderates:  helper.MapSlice(resp.Moderates, converter.ConvertCommunityModeratorView),
-			PersonView: converter.ConvertPersonView(resp.PersonView),
-			Posts:      helper.MapSlice(resp.Posts, converter.ConvertPostView),
-		},
-	}, nil
+	canonical := &lemmyResponse.GetUserResponse{
+		Comments:   helper.MapSlice(resp.Comments, converter.ConvertCommentView),
+		Moderates:  helper.MapSlice(resp.Moderates, converter.ConvertCommunityModeratorView),
+		PersonView: converter.ConvertPersonView(resp.PersonView),
+		Posts:      helper.MapSlice(resp.Posts, converter.ConvertPostView),
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetUserResponse(canonical)}, nil
 }
 
 func (receiver *UserController) BlockPerson(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.BlockPersonRequest](request)
+	reqDto, err := receiver.frontend.ParseBlockPersonRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -132,13 +139,12 @@ func (receiver *UserController) BlockPerson(request *http.Request) (*http.Respon
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body: &lemmyResponse.BlockPersonResponse{
-			Blocked:    resp.Blocked,
-			PersonView: converter.ConvertPersonView(resp.PersonView),
-		},
-	}, nil
+	canonical := &lemmyResponse.BlockPersonResponse{
+		Blocked:    resp.Blocked,
+		PersonView: converter.ConvertPersonView(resp.PersonView),
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildBlockPersonResponse(canonical)}, nil
 }
 
 // SaveUserSettings only forwards the four fields Piefed's own
@@ -149,6 +155,12 @@ func (receiver *UserController) BlockPerson(request *http.Request) (*http.Respon
 // silently dropped. InfiniteScrollEnabled specifically can never persist
 // server-side on a Piefed-backed instance regardless of what this proxy
 // does, since Piefed has no field for it at all.
+//
+// Not migrated onto frontend.Frontend yet: 0.17.x's real SaveUserSettings
+// encodes default_sort_type/default_listing_type as raw numeric enum
+// indices rather than string names, unlike every other sort-bearing
+// endpoint — a genuinely separate translation problem, deferred rather
+// than rushed.
 func (receiver *UserController) SaveUserSettings(request *http.Request) (*http.Response, error) {
 	reqDto, err := helper.ParseRequest[lemmy.SaveUserSettingsRequest](request)
 	if err != nil {

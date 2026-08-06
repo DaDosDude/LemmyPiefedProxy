@@ -120,3 +120,31 @@ func (receiver *Frontend019) ParseBlockCommunityRequest(request *http.Request) (
 func (receiver *Frontend019) BuildBlockCommunityResponse(resp *lemmyResponse.BlockCommunityResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) ParseLoginRequest(request *http.Request) (*lemmyRequest.LoginRequest, error) {
+	return helper.ParseRequest[lemmyRequest.LoginRequest](request)
+}
+
+func (receiver *Frontend019) BuildLoginResponse(resp *lemmyResponse.LoginResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) BuildGetUnreadCountResponse(resp *lemmyResponse.GetUnreadCountResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseGetUserRequest(request *http.Request) (*lemmyRequest.GetUserRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetUserRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetUserResponse(resp *lemmyResponse.GetUserResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseBlockPersonRequest(request *http.Request) (*lemmyRequest.BlockPersonRequest, error) {
+	return helper.ParseRequest[lemmyRequest.BlockPersonRequest](request)
+}
+
+func (receiver *Frontend019) BuildBlockPersonResponse(resp *lemmyResponse.BlockPersonResponse) any {
+	return resp
+}

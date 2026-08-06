@@ -81,8 +81,9 @@ curl -s "https://your-domain.example/api/v3/site" | head -c 200
 - Lemmy 0.18.x authentication convention (`auth` in the request body or
   query string instead of an `Authorization` header) — applied centrally
   to every route, not endpoint-specific
-- Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, and Community
-  endpoints only so far, verified against Lemmy's real 0.17.2 source
+- Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, Community, and
+  User (except `save_user_settings`, see below) endpoints only so far,
+  verified against Lemmy's real 0.17.2 source
 
 **Endpoints implemented and tested against a live Piefed instance:**
 `user/login`, `user/unread_count`, `user`, `user/block`,
@@ -99,11 +100,17 @@ and fetch, outside `/api/v3` since that's where real clients send them).
 Search, Site, and Upload controllers still talk to a Piefed-shaped
 client directly regardless of `BACKEND_TYPE` — not migrated yet.
 
-**Frontend pluggability (0.17.x wire format) covers Post, Comment, and
-Community.** User, Search, Site, and Upload still assume the current
-wire format directly regardless of `FRONTEND_VERSION` — not migrated
-yet. The two axes are independent and don't move in lockstep: Community
-is on the Frontend axis but not the Backend one.
+**Frontend pluggability (0.17.x wire format) covers Post, Comment,
+Community, and most of User.** Search, Site, and Upload still assume the
+current wire format directly regardless of `FRONTEND_VERSION` — not
+migrated yet. The two axes are independent and don't move in lockstep:
+Community and User are on the Frontend axis but not the Backend one.
+
+**`save_user_settings` isn't part of the 0.17.x migration yet.** Real
+0.17.x encodes `default_sort_type`/`default_listing_type` as raw numeric
+enum indices, unlike every other sort-bearing endpoint (which use string
+names) — a genuinely separate translation problem from the rest of User,
+deferred rather than rushed.
 
 **Not implemented in Piefed itself**, confirmed from Piefed's own source
 — not a translation gap, there's nothing on Piefed's side to translate

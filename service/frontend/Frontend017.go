@@ -302,3 +302,46 @@ func (receiver *Frontend017) BuildBlockCommunityResponse(resp *lemmyResponse.Blo
 		CommunityView: converter.ConvertCommunityViewTo017(resp.CommunityView),
 	}
 }
+
+// ParseLoginRequest reuses the canonical parse directly — 0.17.2's real
+// Login (username_or_email, password) matches exactly.
+func (receiver *Frontend017) ParseLoginRequest(request *http.Request) (*lemmyRequest.LoginRequest, error) {
+	return helper.ParseRequest[lemmyRequest.LoginRequest](request)
+}
+
+func (receiver *Frontend017) BuildLoginResponse(resp *lemmyResponse.LoginResponse) any {
+	return resp
+}
+
+func (receiver *Frontend017) BuildGetUnreadCountResponse(resp *lemmyResponse.GetUnreadCountResponse) any {
+	return resp
+}
+
+// ParseGetUserRequest reuses the canonical parse directly — 0.17.2's real
+// GetPersonDetails matches our canonical GetUserRequest's fields exactly
+// (community_id isn't wired through on either side currently).
+func (receiver *Frontend017) ParseGetUserRequest(request *http.Request) (*lemmyRequest.GetUserRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetUserRequest](request)
+}
+
+func (receiver *Frontend017) BuildGetUserResponse(resp *lemmyResponse.GetUserResponse) any {
+	return &lemmyResponse017.GetUserResponse{
+		Comments:   helper.MapSlice(resp.Comments, converter.ConvertCommentViewTo017),
+		Moderates:  resp.Moderates,
+		PersonView: converter.ConvertPersonViewTo017(resp.PersonView),
+		Posts:      helper.MapSlice(resp.Posts, converter.ConvertPostViewTo017),
+	}
+}
+
+// ParseBlockPersonRequest reuses the canonical parse directly — 0.17.2's
+// real BlockPerson (person_id, block, auth) matches exactly.
+func (receiver *Frontend017) ParseBlockPersonRequest(request *http.Request) (*lemmyRequest.BlockPersonRequest, error) {
+	return helper.ParseRequest[lemmyRequest.BlockPersonRequest](request)
+}
+
+func (receiver *Frontend017) BuildBlockPersonResponse(resp *lemmyResponse.BlockPersonResponse) any {
+	return &lemmyResponse017.BlockPersonResponse{
+		Blocked:    resp.Blocked,
+		PersonView: converter.ConvertPersonViewTo017(resp.PersonView),
+	}
+}

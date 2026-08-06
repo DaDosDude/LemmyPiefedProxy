@@ -128,6 +128,31 @@ func ConvertCommunityViewTo017(in lemmy.CommunityView) lemmy017.CommunityView {
 	}
 }
 
+// ConvertPersonAggregatesTo017 fills in the fields 0.17.2's real
+// PersonAggregates requires that our canonical model doesn't track at
+// all — Id (same extra-id pattern as elsewhere), PostScore, and
+// CommentScore (fields never captured, not just omitted; both default
+// to 0, an honest gap rather than a guess).
+func ConvertPersonAggregatesTo017(in lemmy.PersonAggregates) lemmy017.PersonAggregates {
+	return lemmy017.PersonAggregates{
+		Id:           in.PersonId,
+		PersonId:     in.PersonId,
+		PostCount:    in.PostCount,
+		PostScore:    0,
+		CommentCount: in.CommentCount,
+		CommentScore: 0,
+	}
+}
+
+// ConvertPersonViewTo017 assembles a full 0.17.x-shaped PersonView from
+// the canonical one.
+func ConvertPersonViewTo017(in lemmy.PersonView) lemmy017.PersonView {
+	return lemmy017.PersonView{
+		Person: ConvertPersonTo017(in.Person),
+		Counts: ConvertPersonAggregatesTo017(in.Counts),
+	}
+}
+
 // ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
 // canonical one, applying both conversions above.
 func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {

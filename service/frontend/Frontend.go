@@ -15,8 +15,10 @@ import (
 // needs to know or care which frontend or backend version is actually in
 // play on either side of it.
 //
-// This interface covers Post, Comment, and Community methods so far,
-// mirroring how backend.Backend started with Post and Comment.
+// This interface covers Post, Comment, Community, and User (except
+// SaveUserSettings, deferred — see Frontend017's own comment on it)
+// methods so far, mirroring how backend.Backend started with Post and
+// Comment.
 //
 // Known gap: Frontend017's BuildSuccessResponse (used for mark_as_read)
 // returns the canonical {success: bool} shape rather than the full
@@ -67,4 +69,15 @@ type Frontend interface {
 
 	ParseBlockCommunityRequest(request *http.Request) (*lemmyRequest.BlockCommunityRequest, error)
 	BuildBlockCommunityResponse(resp *lemmyResponse.BlockCommunityResponse) any
+
+	ParseLoginRequest(request *http.Request) (*lemmyRequest.LoginRequest, error)
+	BuildLoginResponse(resp *lemmyResponse.LoginResponse) any
+
+	BuildGetUnreadCountResponse(resp *lemmyResponse.GetUnreadCountResponse) any
+
+	ParseGetUserRequest(request *http.Request) (*lemmyRequest.GetUserRequest, error)
+	BuildGetUserResponse(resp *lemmyResponse.GetUserResponse) any
+
+	ParseBlockPersonRequest(request *http.Request) (*lemmyRequest.BlockPersonRequest, error)
+	BuildBlockPersonResponse(resp *lemmyResponse.BlockPersonResponse) any
 }
