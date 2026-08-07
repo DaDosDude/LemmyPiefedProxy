@@ -10,18 +10,24 @@ import (
 	"LemmyBeProxy/helper"
 	"LemmyBeProxy/helper/converter"
 	appHttp "LemmyBeProxy/http"
+	"LemmyBeProxy/service"
 )
 
 // PiefedBackend implements the backend.Backend interface, translating
 // between Lemmy-shaped requests/responses (this proxy's canonical shape)
 // and Piefed's real API shape. It wraps the low-level *Piefed client,
-// which just makes the raw HTTP calls.
+// which just makes the raw HTTP calls. activityPub and simulateLemmy
+// exist solely for Site — Piefed's own /site response needs supplementing
+// with a direct ActivityPub actor fetch for fields it doesn't expose
+// natively, a genuinely Piefed-specific need no other endpoint has.
 type PiefedBackend struct {
-	client *Piefed
+	client        *Piefed
+	activityPub   *service.ActivityPub
+	simulateLemmy bool
 }
 
-func NewPiefedBackend(client *Piefed) *PiefedBackend {
-	return &PiefedBackend{client: client}
+func NewPiefedBackend(client *Piefed, activityPub *service.ActivityPub, simulateLemmy bool) *PiefedBackend {
+	return &PiefedBackend{client: client, activityPub: activityPub, simulateLemmy: simulateLemmy}
 }
 
 // convertGetPostResponse is shared by every Post method that returns
@@ -393,5 +399,42 @@ func (receiver *PiefedBackend) Search(request *lemmyRequest.SearchRequest, heade
 		Posts:       helper.MapSlice(resp.Posts, converter.ConvertPostView),
 		Users:       helper.MapSlice(resp.Users, converter.ConvertPersonView),
 		Comments:    helper.MapSlice(resp.Comments, converter.ConvertCommentView),
+	}, nil
+}
+
+// Site does real, Piefed-specific work no other endpoint needs: an
+// ActivityPub actor fetch to supplement fields Piefed's own /site
+// response doesn't expose natively (moved here unchanged from the old
+// SiteController implementation).
+func (receiver *PiefedBackend) Site(headers appHttp.Headers) (*lemmyResponse.GetSiteResponse, error) {
+	resp, err := receiver.client.Site(headers)
+	if err != nil {
+		return nil, err
+	}
+
+	apActor, err := receiver.activityPub.FetchActor(resp.Site.ActorId)
+	if err != nil {
+		return nil, err
+	}
+
+	var version string
+	if receiver.simulateLemmy {
+		version = "0.19.11"
+	} else {
+		version = resp.Version
+	}
+
+	return &lemmyResponse.GetSiteResponse{
+		Admins:       helper.MapSlice(resp.Admins, converter.ConvertPersonView),
+		AllLanguages: helper.MapSlice(resp.Site.AllLanguages, converter.ConvertLanguageView),
+		BlockedUrls:  []lemmyModel.LocalSiteUrlBlocklist{},
+		CustomEmojis: []lemmyModel.CustomEmojiView{},
+		DiscussionLanguages: helper.MapSlice(resp.Site.AllLanguages, func(in piefedModel.LanguageView) uint {
+			return in.Id
+		}),
+		MyUser:   converter.ConvertMyUserInfo(resp.MyUser, apActor),
+		SiteView: converter.ConvertSiteToView(&resp.Site, apActor),
+		Taglines: []lemmyModel.Tagline{},
+		Version:  version,
 	}, nil
 }

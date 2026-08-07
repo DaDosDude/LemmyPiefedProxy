@@ -15,10 +15,10 @@ import (
 // implementation is close to a passthrough, since the shapes already
 // match.
 //
-// This interface covers Post, Comment, Community, User, and Search
-// methods so far, as the first five slices of a larger migration — Site
-// and Upload still talk to the old *piefed.Piefed type directly and
-// need the same treatment applied.
+// This interface covers Post, Comment, Community, User, Search, and
+// Site methods so far, as the first six slices of a larger migration —
+// Upload still talks to the old *piefed.Piefed type directly and needs
+// the same treatment applied.
 type Backend interface {
 	GetPosts(request *lemmyRequest.GetPostsRequest, headers http.Headers) (*lemmyResponse.GetPostsResponse, error)
 	GetPost(request *lemmyRequest.GetPostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
@@ -44,4 +44,11 @@ type Backend interface {
 	SaveUserSettings(request *lemmyRequest.SaveUserSettingsRequest, headers http.Headers) (*lemmyResponse.SaveUserSettingsResponse, error)
 
 	Search(request *lemmyRequest.SearchRequest, headers http.Headers) (*lemmyResponse.SearchResponse, error)
+
+	// Site takes no request DTO — Lemmy's GET /site has no parameters
+	// beyond auth. PiefedBackend's implementation does real work here
+	// (an ActivityPub actor fetch to supplement fields Piefed's own API
+	// doesn't expose); LemmyBackend's is close to a passthrough, since
+	// real Lemmy's own /site response is already complete on its own.
+	Site(headers http.Headers) (*lemmyResponse.GetSiteResponse, error)
 }

@@ -25,13 +25,10 @@ var activityPub *service.ActivityPub
 
 // activeBackend is the shared instance every migrated controller talks
 // to — see service/backend/Backend.go. Post, Comment, Community, User,
-// and Search controllers are migrated onto it so far. Site and Upload
-// still talk to the raw *piefed.Piefed client above directly, and will
-// keep doing so — PieFed-shaped, regardless of BACKEND_TYPE — until
-// they get the same migration in follow-up work. Setting
-// BACKEND_TYPE=lemmy right now changes every migrated endpoint's
-// behavior; Site and Upload still assume a Piefed backend until they
-// move onto this interface too.
+// Search, and Site controllers are migrated onto it so far. Upload is
+// the only one left still talking to the raw *piefed.Piefed client
+// above directly, and will keep doing so — PieFed-shaped, regardless of
+// BACKEND_TYPE — until it gets the same migration in follow-up work.
 var activeBackend backend.Backend
 
 // activeFrontend is the wire-format counterpart to activeBackend — see
@@ -85,7 +82,7 @@ func init() {
 
 	switch backendType {
 	case "piefed":
-		activeBackend = piefedService.NewPiefedBackend(piefedService.NewPiefed(backendInstance))
+		activeBackend = piefedService.NewPiefedBackend(piefedService.NewPiefed(backendInstance), activityPub, simulateLemmy)
 	case "lemmy":
 		activeBackend = lemmyService.NewLemmyBackend(lemmyService.NewLemmy(backendInstance))
 	default:

@@ -102,3 +102,7 @@ func (receiver *LemmyBackend) SaveUserSettings(request *lemmyRequest.SaveUserSet
 func (receiver *LemmyBackend) Search(request *lemmyRequest.SearchRequest, headers appHttp.Headers) (*lemmyResponse.SearchResponse, error) {
 	return defaultHandler[lemmyResponse.SearchResponse](receiver.client, "/search", router.HttpMethodGet, request, headers)
 }
+
+func (receiver *LemmyBackend) Site(headers appHttp.Headers) (*lemmyResponse.GetSiteResponse, error) {
+	return defaultHandler[lemmyResponse.GetSiteResponse](receiver.client, "/site", router.HttpMethodGet, nil, headers)
+}

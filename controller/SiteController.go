@@ -1,70 +1,33 @@
 package controller
 
 import (
-	lemmyModel "LemmyBeProxy/dto/model/lemmy"
-	piefedModel "LemmyBeProxy/dto/model/piefed"
-	"LemmyBeProxy/dto/response/lemmy"
-	"LemmyBeProxy/helper"
-	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
-	"LemmyBeProxy/service"
+	"LemmyBeProxy/service/backend"
 	"LemmyBeProxy/service/frontend"
-	"LemmyBeProxy/service/piefed"
 	goHttp "net/http"
 )
 
+// SiteController is now thin — all the Piefed-specific assembly logic
+// (including the ActivityPub actor fetch) moved into PiefedBackend,
+// since that's genuinely backend-specific work a real Lemmy backend
+// doesn't need at all.
 type SiteController struct {
-	piefed        *piefed.Piefed
-	activityPub   *service.ActivityPub
-	simulateLemmy bool
-	frontend      frontend.Frontend
+	backend  backend.Backend
+	frontend frontend.Frontend
 }
 
-func NewSiteController(
-	piefed *piefed.Piefed,
-	activityPub *service.ActivityPub,
-	simulateLemmy bool,
-	frontend frontend.Frontend,
-) *SiteController {
+func NewSiteController(backend backend.Backend, frontend frontend.Frontend) *SiteController {
 	return &SiteController{
-		piefed:        piefed,
-		simulateLemmy: simulateLemmy,
-		activityPub:   activityPub,
-		frontend:      frontend,
+		backend:  backend,
+		frontend: frontend,
 	}
 }
 
 func (receiver *SiteController) Site(request *http.Request) (*http.Response, error) {
-	resp, err := receiver.piefed.Site(request.Headers)
+	resp, err := receiver.backend.Site(request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	apActor, err := receiver.activityPub.FetchActor(resp.Site.ActorId)
-	if err != nil {
-		return nil, err
-	}
-
-	var version string
-	if receiver.simulateLemmy {
-		version = "0.19.11"
-	} else {
-		version = resp.Version
-	}
-
-	canonical := &lemmy.GetSiteResponse{
-		Admins:       helper.MapSlice(resp.Admins, converter.ConvertPersonView),
-		AllLanguages: helper.MapSlice(resp.Site.AllLanguages, converter.ConvertLanguageView),
-		BlockedUrls:  []lemmyModel.LocalSiteUrlBlocklist{},
-		CustomEmojis: []lemmyModel.CustomEmojiView{},
-		DiscussionLanguages: helper.MapSlice(resp.Site.AllLanguages, func(in piefedModel.LanguageView) uint {
-			return in.Id
-		}),
-		MyUser:   converter.ConvertMyUserInfo(resp.MyUser, apActor),
-		SiteView: converter.ConvertSiteToView(&resp.Site, apActor),
-		Taglines: []lemmyModel.Tagline{},
-		Version:  version,
-	}
-
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetSiteResponse(canonical)}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetSiteResponse(resp)}, nil
 }
