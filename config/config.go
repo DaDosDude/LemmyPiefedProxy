@@ -24,14 +24,15 @@ var piefed *piefedService.Piefed
 var activityPub *service.ActivityPub
 
 // activeBackend is the shared instance every migrated controller talks
-// to — see service/backend/Backend.go. Post and Comment controllers are
-// migrated onto it so far. Every other controller (community, user,
-// search, site, upload) still talks to the raw *piefed.Piefed client
-// above directly, and will keep doing so — PieFed-shaped, regardless of
-// BACKEND_TYPE — until they get the same migration in follow-up work.
-// Setting BACKEND_TYPE=lemmy right now only changes Post/Comment
-// endpoint behavior; everything else still assumes a Piefed backend
-// until the rest of the controllers move onto this interface too.
+// to — see service/backend/Backend.go. Post, Comment, and Community
+// controllers are migrated onto it so far. Every other controller
+// (user, search, site, upload) still talks to the raw *piefed.Piefed
+// client above directly, and will keep doing so — PieFed-shaped,
+// regardless of BACKEND_TYPE — until they get the same migration in
+// follow-up work. Setting BACKEND_TYPE=lemmy right now only changes
+// Post/Comment/Community endpoint behavior; everything else still
+// assumes a Piefed backend until the rest of the controllers move onto
+// this interface too.
 var activeBackend backend.Backend
 
 // activeFrontend is the wire-format counterpart to activeBackend — see

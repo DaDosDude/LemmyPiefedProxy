@@ -1,32 +1,26 @@
 package controller
 
 import (
-	lemmyModel "LemmyBeProxy/dto/model/lemmy"
-	piefedModel "LemmyBeProxy/dto/model/piefed"
-	"LemmyBeProxy/dto/request/piefed"
-	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
 	"LemmyBeProxy/helper"
-	"LemmyBeProxy/helper/converter"
 	"LemmyBeProxy/http"
+	"LemmyBeProxy/service/backend"
 	"LemmyBeProxy/service/frontend"
-	pfService "LemmyBeProxy/service/piefed"
 	goHttp "net/http"
 )
 
-// CommunityController now uses frontend.Frontend for parsing/building
-// (wire-format-agnostic), but still calls the raw Piefed client directly
-// for the actual backend call — Community hasn't been migrated onto
-// backend.Backend yet, only Post and Comment have. The two interfaces
-// are independent axes; this controller is on the Frontend axis only
-// for now.
+// CommunityController is now thin on both axes — frontend handles wire
+// format, backend handles which real service is actually called. All
+// Piefed-specific translation that used to live in this controller
+// moved into PiefedBackend, matching the pattern PostController and
+// CommentController were already migrated onto.
 type CommunityController struct {
-	piefed   *pfService.Piefed
+	backend  backend.Backend
 	frontend frontend.Frontend
 }
 
-func NewCommunityController(piefed *pfService.Piefed, frontend frontend.Frontend) *CommunityController {
+func NewCommunityController(backend backend.Backend, frontend frontend.Frontend) *CommunityController {
 	return &CommunityController{
-		piefed:   piefed,
+		backend:  backend,
 		frontend: frontend,
 	}
 }
@@ -37,20 +31,12 @@ func (receiver *CommunityController) GetCommunity(request *http.Request) (*http.
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.GetCommunity(&piefed.GetCommunityRequest{
-		Id:   reqDto.Id,
-		Name: reqDto.Name,
-	}, request.Headers)
+	resp, err := receiver.backend.GetCommunity(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	canonical := &lemmyResponse.GetCommunityResponse{
-		CommunityView: converter.ConvertCommunityView(resp.CommunityView),
-		Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorView),
-	}
-
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommunityResponse(canonical)}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommunityResponse(resp)}, nil
 }
 
 func (receiver *CommunityController) GetCommunities(request *http.Request) (*http.Response, error) {
@@ -59,26 +45,12 @@ func (receiver *CommunityController) GetCommunities(request *http.Request) (*htt
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.GetCommunities(&piefed.GetCommunitiesRequest{
-		Type: helper.SafeDereference(reqDto.Type, func(in lemmyModel.ListingType) *piefedModel.ListingType {
-			return helper.ToPointer(converter.ReverseConvertListingType(in))
-		}),
-		Sort: helper.SafeDereference(reqDto.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
-			return helper.ToPointer(converter.ReverseConvertCommunitySortType(in))
-		}),
-		ShowNsfw: reqDto.ShowNsfw,
-		Page:     reqDto.Page,
-		Limit:    reqDto.Limit,
-	}, request.Headers)
+	resp, err := receiver.backend.GetCommunities(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	canonical := &lemmyResponse.GetCommunitiesResponse{
-		Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityView),
-	}
-
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommunitiesResponse(canonical)}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetCommunitiesResponse(resp)}, nil
 }
 
 func (receiver *CommunityController) FollowCommunity(request *http.Request) (*http.Response, error) {
@@ -87,20 +59,12 @@ func (receiver *CommunityController) FollowCommunity(request *http.Request) (*ht
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.FollowCommunity(&piefed.FollowCommunityRequest{
-		CommunityId: reqDto.CommunityId,
-		Follow:      reqDto.Follow,
-	}, request.Headers)
+	resp, err := receiver.backend.FollowCommunity(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	canonical := &lemmyResponse.CommunityResponse{
-		CommunityView:       converter.ConvertCommunityView(resp.CommunityView),
-		DiscussionLanguages: resp.DiscussionLanguages,
-	}
-
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildCommunityResponse(canonical)}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildCommunityResponse(resp)}, nil
 }
 
 func (receiver *CommunityController) BlockCommunity(request *http.Request) (*http.Response, error) {
@@ -109,18 +73,10 @@ func (receiver *CommunityController) BlockCommunity(request *http.Request) (*htt
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
 
-	resp, err := receiver.piefed.BlockCommunity(&piefed.BlockCommunityRequest{
-		CommunityId: reqDto.CommunityId,
-		Block:       reqDto.Block,
-	}, request.Headers)
+	resp, err := receiver.backend.BlockCommunity(reqDto, request.Headers)
 	if err != nil {
 		return nil, err
 	}
 
-	canonical := &lemmyResponse.BlockCommunityResponse{
-		Blocked:       resp.Blocked,
-		CommunityView: converter.ConvertCommunityView(resp.CommunityView),
-	}
-
-	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildBlockCommunityResponse(canonical)}, nil
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildBlockCommunityResponse(resp)}, nil
 }

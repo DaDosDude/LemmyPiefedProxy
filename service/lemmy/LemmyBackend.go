@@ -62,3 +62,19 @@ func (receiver *LemmyBackend) CreateComment(request *lemmyRequest.CreateCommentR
 func (receiver *LemmyBackend) LikeComment(request *lemmyRequest.CreateCommentLikeRequest, headers appHttp.Headers) (*lemmyResponse.GetCommentResponse, error) {
 	return defaultHandler[lemmyResponse.GetCommentResponse](receiver.client, "/comment/like", router.HttpMethodPost, request, headers)
 }
+
+func (receiver *LemmyBackend) GetCommunity(request *lemmyRequest.GetCommunityRequest, headers appHttp.Headers) (*lemmyResponse.GetCommunityResponse, error) {
+	return defaultHandler[lemmyResponse.GetCommunityResponse](receiver.client, "/community", router.HttpMethodGet, request, headers)
+}
+
+func (receiver *LemmyBackend) GetCommunities(request *lemmyRequest.GetCommunitiesRequest, headers appHttp.Headers) (*lemmyResponse.GetCommunitiesResponse, error) {
+	return defaultHandler[lemmyResponse.GetCommunitiesResponse](receiver.client, "/community/list", router.HttpMethodGet, request, headers)
+}
+
+func (receiver *LemmyBackend) FollowCommunity(request *lemmyRequest.FollowCommunityRequest, headers appHttp.Headers) (*lemmyResponse.CommunityResponse, error) {
+	return defaultHandler[lemmyResponse.CommunityResponse](receiver.client, "/community/follow", router.HttpMethodPost, request, headers)
+}
+
+func (receiver *LemmyBackend) BlockCommunity(request *lemmyRequest.BlockCommunityRequest, headers appHttp.Headers) (*lemmyResponse.BlockCommunityResponse, error) {
+	return defaultHandler[lemmyResponse.BlockCommunityResponse](receiver.client, "/community/block", router.HttpMethodPost, request, headers)
+}

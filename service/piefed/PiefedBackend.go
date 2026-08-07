@@ -213,3 +213,69 @@ func (receiver *PiefedBackend) LikeComment(request *lemmyRequest.CreateCommentLi
 		RecipientIds: []uint{},
 	}, nil
 }
+
+func (receiver *PiefedBackend) GetCommunity(request *lemmyRequest.GetCommunityRequest, headers appHttp.Headers) (*lemmyResponse.GetCommunityResponse, error) {
+	resp, err := receiver.client.GetCommunity(&piefedRequest.GetCommunityRequest{
+		Id:   request.Id,
+		Name: request.Name,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.GetCommunityResponse{
+		CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+		Moderators:    helper.MapSlice(resp.Moderators, converter.ConvertCommunityModeratorView),
+	}, nil
+}
+
+func (receiver *PiefedBackend) GetCommunities(request *lemmyRequest.GetCommunitiesRequest, headers appHttp.Headers) (*lemmyResponse.GetCommunitiesResponse, error) {
+	resp, err := receiver.client.GetCommunities(&piefedRequest.GetCommunitiesRequest{
+		Type: helper.SafeDereference(request.Type, func(in lemmyModel.ListingType) *piefedModel.ListingType {
+			return helper.ToPointer(converter.ReverseConvertListingType(in))
+		}),
+		Sort: helper.SafeDereference(request.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
+			return helper.ToPointer(converter.ReverseConvertCommunitySortType(in))
+		}),
+		ShowNsfw: request.ShowNsfw,
+		Page:     request.Page,
+		Limit:    request.Limit,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.GetCommunitiesResponse{
+		Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityView),
+	}, nil
+}
+
+func (receiver *PiefedBackend) FollowCommunity(request *lemmyRequest.FollowCommunityRequest, headers appHttp.Headers) (*lemmyResponse.CommunityResponse, error) {
+	resp, err := receiver.client.FollowCommunity(&piefedRequest.FollowCommunityRequest{
+		CommunityId: request.CommunityId,
+		Follow:      request.Follow,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.CommunityResponse{
+		CommunityView:       converter.ConvertCommunityView(resp.CommunityView),
+		DiscussionLanguages: resp.DiscussionLanguages,
+	}, nil
+}
+
+func (receiver *PiefedBackend) BlockCommunity(request *lemmyRequest.BlockCommunityRequest, headers appHttp.Headers) (*lemmyResponse.BlockCommunityResponse, error) {
+	resp, err := receiver.client.BlockCommunity(&piefedRequest.BlockCommunityRequest{
+		CommunityId: request.CommunityId,
+		Block:       request.Block,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.BlockCommunityResponse{
+		Blocked:       resp.Blocked,
+		CommunityView: converter.ConvertCommunityView(resp.CommunityView),
+	}, nil
+}
