@@ -99,16 +99,16 @@ and fetch, outside `/api/v3` since that's where real clients send them).
 
 ## Features not working yet
 
-**Backend pluggability covers Post, Comment, Community, User, Search,
-and Site.** Upload is the only controller left still talking to a
-Piefed-shaped client directly regardless of `BACKEND_TYPE` — not
-migrated yet.
+**Backend pluggability is done — every endpoint this proxy implements
+works against either Piefed or real Lemmy.** No controller is left
+hardcoded to a Piefed-shaped client.
 
-**Frontend pluggability (0.17.x wire format) is done — every endpoint
-this proxy implements works on both wire formats.** Upload doesn't need
-Frontend-axis work at all, since `pictrs/image` is version-agnostic by
-nature — meaning Upload is the only remaining piece for full pluggability
-on both axes.
+**Frontend pluggability (0.17.x wire format) is done too — every
+endpoint this proxy implements works on both wire formats.** Upload
+doesn't need Frontend-axis work at all, since `pictrs/image` is
+version-agnostic by nature. Both axes — which backend, and which wire
+format — are now genuinely independent and fully covered for the entire
+API surface this proxy implements.
 
 **Not implemented in Piefed itself**, confirmed from Piefed's own source
 — not a translation gap, there's nothing on Piefed's side to translate

@@ -20,21 +20,21 @@ var CertificateKey string
 var CorsRegex *regexp.Regexp
 
 var simulateLemmy bool
-var piefed *piefedService.Piefed
 var activityPub *service.ActivityPub
 
-// activeBackend is the shared instance every migrated controller talks
-// to — see service/backend/Backend.go. Post, Comment, Community, User,
-// Search, and Site controllers are migrated onto it so far. Upload is
-// the only one left still talking to the raw *piefed.Piefed client
-// above directly, and will keep doing so — PieFed-shaped, regardless of
-// BACKEND_TYPE — until it gets the same migration in follow-up work.
+// activeBackend is what every controller talks to — see
+// service/backend/Backend.go. Every controller this proxy implements
+// (Post, Comment, Community, User, Search, Site, Upload) is migrated
+// onto it; there's no controller left still hardcoded to a Piefed-shaped
+// client. Setting BACKEND_TYPE=lemmy genuinely changes every endpoint's
+// behavior now, not just some of them.
 var activeBackend backend.Backend
 
 // activeFrontend is the wire-format counterpart to activeBackend — see
-// service/frontend/Frontend.go. Post and Comment controllers are
-// migrated onto it so far; everything else still assumes the current
-// (0.19.x) wire format directly regardless of FRONTEND_VERSION.
+// service/frontend/Frontend.go. Every endpoint this proxy implements
+// works on both wire formats (0.19.x and 0.17.x) except Upload, which
+// doesn't need Frontend-axis work at all since pict-rs's own protocol
+// is version-agnostic by nature.
 var activeFrontend frontend.Frontend
 
 func init() {
@@ -77,7 +77,6 @@ func init() {
 		panic("FRONTEND_VERSION environment variable not set — must be \"0.19\" or \"0.17\"")
 	}
 
-	piefed = piefedService.NewPiefed(backendInstance)
 	activityPub = service.NewActivityPub()
 
 	switch backendType {

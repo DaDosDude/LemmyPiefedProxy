@@ -438,3 +438,15 @@ func (receiver *PiefedBackend) Site(headers appHttp.Headers) (*lemmyResponse.Get
 		Version:  version,
 	}, nil
 }
+
+// UploadImage forwards to Piefed's own /upload/image endpoint, which
+// expects Bearer auth (unlike real Lemmy's pict-rs, which expects a
+// Cookie — see LemmyBackend's implementation for the difference).
+func (receiver *PiefedBackend) UploadImage(fileBytes []byte, filename string, jwt string) (string, error) {
+	resp, err := receiver.client.UploadImage(fileBytes, filename, jwt)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Url, nil
+}

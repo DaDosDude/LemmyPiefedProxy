@@ -16,7 +16,7 @@ func init() {
 	commentController := controller.NewCommentController(activeBackend, activeFrontend)
 	communityController := controller.NewCommunityController(activeBackend, activeFrontend)
 	searchController := controller.NewSearchController(activeBackend, activeFrontend)
-	uploadController := controller.NewUploadController(piefed)
+	uploadController := controller.NewUploadController(activeBackend)
 
 	// implemented
 	AppRouter.AddRoute(newRoute("/user/login", router.HttpMethodPost, userController.Login))

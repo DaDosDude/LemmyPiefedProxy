@@ -2,7 +2,7 @@ package controller
 
 import (
 	"LemmyBeProxy/http"
-	pfService "LemmyBeProxy/service/piefed"
+	"LemmyBeProxy/service/backend"
 	"bytes"
 	"encoding/hex"
 	"io"
@@ -12,13 +12,18 @@ import (
 	"strings"
 )
 
+// UploadController is now thin — the raw multipart parsing and the
+// hex-token/redirect mechanism (built to work with Piefed's upload API,
+// which doesn't return a directly servable URL) both stay here since
+// they work identically regardless of which backend actually produced
+// the resulting URL. Only the actual upload call is backend-specific.
 type UploadController struct {
-	piefed *pfService.Piefed
+	backend backend.Backend
 }
 
-func NewUploadController(piefed *pfService.Piefed) *UploadController {
+func NewUploadController(backend backend.Backend) *UploadController {
 	return &UploadController{
-		piefed: piefed,
+		backend: backend,
 	}
 }
 
@@ -38,8 +43,9 @@ func extractCookieJwt(cookieHeader string) string {
 // UploadImage handles POST /pictrs/image — a route deliberately outside
 // /api/v3, since that's where mlmym (and real Lemmy pict-rs) actually sends
 // uploads. It parses the incoming multipart body itself (defaultHandler is
-// JSON-only), forwards the file to Piefed, and responds in pict-rs's own
-// response shape so mlmym's existing parsing code works unmodified.
+// JSON-only), forwards the file via the configured backend, and responds
+// in pict-rs's own response shape so mlmym's existing parsing code works
+// unmodified regardless of which backend is actually running.
 func (receiver *UploadController) UploadImage(request *http.Request) (*http.Response, error) {
 	contentType := request.Headers["Content-Type"]
 	_, params, err := mime.ParseMediaType(contentType)
@@ -97,7 +103,7 @@ func (receiver *UploadController) UploadImage(request *http.Request) (*http.Resp
 		}, nil
 	}
 
-	resp, err := receiver.piefed.UploadImage(fileBytes, filename, jwt)
+	fileURL, err := receiver.backend.UploadImage(fileBytes, filename, jwt)
 	if err != nil {
 		return &http.Response{
 			StatusCode: goHttp.StatusBadRequest,
@@ -105,14 +111,16 @@ func (receiver *UploadController) UploadImage(request *http.Request) (*http.Resp
 		}, nil
 	}
 
-	// Encode the real Piefed URL as a lowercase hex token so it can be
-	// handed back in pict-rs's own response shape. mlmym builds the final
-	// <img> URL itself as /pictrs/image/{file} — the fake ".jpg" extension
-	// is there purely so mlmym's own pictrs-URL regex (which requires
-	// [a-z0-9-]+.[a-z]+) recognizes it and applies its thumbnail query
-	// params, even though those params have no effect once we redirect to
-	// Piefed's real image (see ServeImage below).
-	token := hex.EncodeToString([]byte(resp.Url))
+	// Encode the resulting image URL as a lowercase hex token so it can
+	// be handed back in pict-rs's own response shape. mlmym builds the
+	// final <img> URL itself as /pictrs/image/{file} — the fake ".jpg"
+	// extension is there purely so mlmym's own pictrs-URL regex (which
+	// requires [a-z0-9-]+.[a-z]+) recognizes it and applies its
+	// thumbnail query params, even though those params have no effect
+	// once we redirect to the backend's real image (see ServeImage
+	// below). This encoding step is backend-agnostic — it works the
+	// same whether the URL came from Piefed or real Lemmy.
+	token := hex.EncodeToString([]byte(fileURL))
 
 	return &http.Response{
 		StatusCode: goHttp.StatusOK,
@@ -129,12 +137,15 @@ func (receiver *UploadController) UploadImage(request *http.Request) (*http.Resp
 }
 
 // ServeImage handles GET /pictrs/image/{token} — decodes the token mlmym
-// requests (built from what UploadImage returned) back into the real Piefed
-// image URL and redirects there. This is a real, permanent limitation: since
-// we redirect straight to Piefed's original image, mlmym's thumbnail query
-// params (?format=jpg&thumbnail=96) have no effect — Piefed doesn't
-// understand Lemmy's pict-rs thumbnailing convention, so images display at
-// full original size rather than being resized down.
+// requests (built from what UploadImage returned) back into the real
+// image URL and redirects there. Against a Piefed backend, this is a
+// real, permanent limitation: since we redirect straight to Piefed's
+// original image, mlmym's thumbnail query params (?format=jpg&thumbnail=96)
+// have no effect — Piefed doesn't understand Lemmy's pict-rs thumbnailing
+// convention, so images display at full original size rather than being
+// resized down. Against a real Lemmy backend this isn't a limitation at
+// all — it's the same pict-rs software, so the thumbnail params redirect
+// straight through and work exactly as they would talking to Lemmy directly.
 func (receiver *UploadController) ServeImage(request *http.Request) (*http.Response, error) {
 	token := request.RouteParams["token"]
 	if idx := strings.LastIndex(token, "."); idx != -1 {

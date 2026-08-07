@@ -5,6 +5,12 @@ import (
 	lemmyResponse "LemmyBeProxy/dto/response/lemmy"
 	appHttp "LemmyBeProxy/http"
 	"LemmyBeProxy/router"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"mime/multipart"
+	goHttp "net/http"
 )
 
 // LemmyBackend implements the backend.Backend interface against a real
@@ -105,4 +111,72 @@ func (receiver *LemmyBackend) Search(request *lemmyRequest.SearchRequest, header
 
 func (receiver *LemmyBackend) Site(headers appHttp.Headers) (*lemmyResponse.GetSiteResponse, error) {
 	return defaultHandler[lemmyResponse.GetSiteResponse](receiver.client, "/site", router.HttpMethodGet, nil, headers)
+}
+
+// UploadImage forwards directly to real Lemmy's own pict-rs endpoint at
+// /pictrs/image — outside /api/v3 entirely, the same path a real mlmym
+// client talking to real Lemmy would use, with the same Cookie-based
+// auth (unlike Piefed's /upload/image, which expects a Bearer header —
+// see PiefedBackend's implementation for that difference). Real Lemmy's
+// pict-rs already returns a servable file token directly in its
+// response, so the resulting URL is built from that token rather than
+// needing any translation.
+func (receiver *LemmyBackend) UploadImage(fileBytes []byte, filename string, jwt string) (string, error) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("images[]", filename)
+	if err != nil {
+		return "", err
+	}
+	if _, err := part.Write(fileBytes); err != nil {
+		return "", err
+	}
+	if err := writer.Close(); err != nil {
+		return "", err
+	}
+
+	req, err := goHttp.NewRequest(
+		"POST",
+		fmt.Sprintf("https://%s/pictrs/image", receiver.client.instance),
+		body,
+	)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Cookie", "jwt="+jwt)
+
+	res, err := goHttp.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	respBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	// Real Lemmy's pict-rs returns 201 Created for a successful upload,
+	// not 200 — confirmed directly against retrolemmy.com. Piefed's own
+	// upload endpoint returns 200, which is why this distinction matters
+	// here specifically and not in PiefedBackend.
+	if res.StatusCode != goHttp.StatusOK && res.StatusCode != goHttp.StatusCreated {
+		return "", fmt.Errorf("lemmy image upload failed with status %d: %s", res.StatusCode, string(respBody))
+	}
+
+	var response struct {
+		Files []struct {
+			File string `json:"file"`
+		} `json:"files"`
+	}
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return "", err
+	}
+	if len(response.Files) == 0 {
+		return "", fmt.Errorf("lemmy image upload succeeded but returned no files")
+	}
+
+	return fmt.Sprintf("https://%s/pictrs/image/%s", receiver.client.instance, response.Files[0].File), nil
 }
