@@ -279,3 +279,119 @@ func (receiver *PiefedBackend) BlockCommunity(request *lemmyRequest.BlockCommuni
 		CommunityView: converter.ConvertCommunityView(resp.CommunityView),
 	}, nil
 }
+
+func (receiver *PiefedBackend) Login(request *lemmyRequest.LoginRequest, headers appHttp.Headers) (*lemmyResponse.LoginResponse, error) {
+	resp, err := receiver.client.Login(&piefedRequest.LoginRequest{
+		Username: request.UsernameOrEmail,
+		Password: request.Password,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.LoginResponse{
+		Jwt: resp.Jwt,
+	}, nil
+}
+
+func (receiver *PiefedBackend) GetUnreadCount(headers appHttp.Headers) (*lemmyResponse.GetUnreadCountResponse, error) {
+	resp, err := receiver.client.GetUnreadCount(headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.GetUnreadCountResponse{
+		Mentions:        resp.Mentions,
+		PrivateMessages: resp.PrivateMessages,
+		Replies:         resp.Replies,
+	}, nil
+}
+
+func (receiver *PiefedBackend) GetUser(request *lemmyRequest.GetUserRequest, headers appHttp.Headers) (*lemmyResponse.GetUserResponse, error) {
+	resp, err := receiver.client.GetUser(&piefedRequest.GetUserRequest{
+		PersonId: request.PersonId,
+		Username: request.Username,
+		Sort: helper.SafeDereference(request.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
+			return helper.ToPointer(converter.ReverseConvertSortType(in))
+		}),
+		Page:      request.Page,
+		Limit:     request.Limit,
+		SavedOnly: request.SavedOnly,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.GetUserResponse{
+		Comments:   helper.MapSlice(resp.Comments, converter.ConvertCommentView),
+		Moderates:  helper.MapSlice(resp.Moderates, converter.ConvertCommunityModeratorView),
+		PersonView: converter.ConvertPersonView(resp.PersonView),
+		Posts:      helper.MapSlice(resp.Posts, converter.ConvertPostView),
+	}, nil
+}
+
+func (receiver *PiefedBackend) BlockPerson(request *lemmyRequest.BlockPersonRequest, headers appHttp.Headers) (*lemmyResponse.BlockPersonResponse, error) {
+	resp, err := receiver.client.BlockPerson(&piefedRequest.BlockPersonRequest{
+		PersonId: request.PersonId,
+		Block:    request.Block,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.BlockPersonResponse{
+		Blocked:    resp.Blocked,
+		PersonView: converter.ConvertPersonView(resp.PersonView),
+	}, nil
+}
+
+// SaveUserSettings only forwards the four fields Piefed's own
+// save_user_settings endpoint actually supports (ShowNsfw,
+// DefaultSortType, DefaultCommentSortType, ShowReadPosts). Everything
+// else is accepted (so the save doesn't fail outright) but has no
+// Piefed field to go to and is silently dropped.
+func (receiver *PiefedBackend) SaveUserSettings(request *lemmyRequest.SaveUserSettingsRequest, headers appHttp.Headers) (*lemmyResponse.SaveUserSettingsResponse, error) {
+	_, err := receiver.client.SaveUserSettings(&piefedRequest.SaveUserSettingsRequest{
+		ShowNsfw: request.ShowNsfw,
+		DefaultSortType: helper.SafeDereference(request.DefaultSortType, func(in string) *string {
+			return helper.ToPointer(converter.ClampDefaultSortType(in))
+		}),
+		DefaultCommentSortType: helper.SafeDereference(request.DefaultCommentSortType, func(in string) *string {
+			return helper.ToPointer(converter.ClampDefaultCommentSortType(in))
+		}),
+		ShowReadPosts: request.ShowReadPosts,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.SaveUserSettingsResponse{}, nil
+}
+
+func (receiver *PiefedBackend) Search(request *lemmyRequest.SearchRequest, headers appHttp.Headers) (*lemmyResponse.SearchResponse, error) {
+	resp, err := receiver.client.Search(&piefedRequest.SearchRequest{
+		Q:    request.Q,
+		Type: converter.ReverseConvertSearchType(request.Type),
+		ListingType: helper.SafeDereference(request.ListingType, func(in lemmyModel.ListingType) *piefedModel.ListingType {
+			return helper.ToPointer(converter.ReverseConvertListingType(in))
+		}),
+		Sort: helper.SafeDereference(request.Sort, func(in lemmyModel.SortType) *piefedModel.SortType {
+			return helper.ToPointer(converter.ReverseConvertSortType(in))
+		}),
+		Page:          request.Page,
+		Limit:         request.Limit,
+		CommunityName: request.CommunityName,
+		CommunityId:   request.CommunityId,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyResponse.SearchResponse{
+		Type:        converter.ConvertSearchType(resp.Type),
+		Communities: helper.MapSlice(resp.Communities, converter.ConvertCommunityView),
+		Posts:       helper.MapSlice(resp.Posts, converter.ConvertPostView),
+		Users:       helper.MapSlice(resp.Users, converter.ConvertPersonView),
+		Comments:    helper.MapSlice(resp.Comments, converter.ConvertCommentView),
+	}, nil
+}

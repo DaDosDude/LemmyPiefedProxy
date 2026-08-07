@@ -15,10 +15,10 @@ import (
 // implementation is close to a passthrough, since the shapes already
 // match.
 //
-// This interface covers Post, Comment, and Community methods so far, as
-// the first three slices of a larger migration — every other controller
-// (user, search, site, upload) still talks to the old *piefed.Piefed
-// type directly and needs the same treatment applied.
+// This interface covers Post, Comment, Community, User, and Search
+// methods so far, as the first five slices of a larger migration — Site
+// and Upload still talk to the old *piefed.Piefed type directly and
+// need the same treatment applied.
 type Backend interface {
 	GetPosts(request *lemmyRequest.GetPostsRequest, headers http.Headers) (*lemmyResponse.GetPostsResponse, error)
 	GetPost(request *lemmyRequest.GetPostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
@@ -36,4 +36,12 @@ type Backend interface {
 	GetCommunities(request *lemmyRequest.GetCommunitiesRequest, headers http.Headers) (*lemmyResponse.GetCommunitiesResponse, error)
 	FollowCommunity(request *lemmyRequest.FollowCommunityRequest, headers http.Headers) (*lemmyResponse.CommunityResponse, error)
 	BlockCommunity(request *lemmyRequest.BlockCommunityRequest, headers http.Headers) (*lemmyResponse.BlockCommunityResponse, error)
+
+	Login(request *lemmyRequest.LoginRequest, headers http.Headers) (*lemmyResponse.LoginResponse, error)
+	GetUnreadCount(headers http.Headers) (*lemmyResponse.GetUnreadCountResponse, error)
+	GetUser(request *lemmyRequest.GetUserRequest, headers http.Headers) (*lemmyResponse.GetUserResponse, error)
+	BlockPerson(request *lemmyRequest.BlockPersonRequest, headers http.Headers) (*lemmyResponse.BlockPersonResponse, error)
+	SaveUserSettings(request *lemmyRequest.SaveUserSettingsRequest, headers http.Headers) (*lemmyResponse.SaveUserSettingsResponse, error)
+
+	Search(request *lemmyRequest.SearchRequest, headers http.Headers) (*lemmyResponse.SearchResponse, error)
 }

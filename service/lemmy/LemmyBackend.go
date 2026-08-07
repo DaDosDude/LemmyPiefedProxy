@@ -78,3 +78,27 @@ func (receiver *LemmyBackend) FollowCommunity(request *lemmyRequest.FollowCommun
 func (receiver *LemmyBackend) BlockCommunity(request *lemmyRequest.BlockCommunityRequest, headers appHttp.Headers) (*lemmyResponse.BlockCommunityResponse, error) {
 	return defaultHandler[lemmyResponse.BlockCommunityResponse](receiver.client, "/community/block", router.HttpMethodPost, request, headers)
 }
+
+func (receiver *LemmyBackend) Login(request *lemmyRequest.LoginRequest, headers appHttp.Headers) (*lemmyResponse.LoginResponse, error) {
+	return defaultHandler[lemmyResponse.LoginResponse](receiver.client, "/user/login", router.HttpMethodPost, request, headers)
+}
+
+func (receiver *LemmyBackend) GetUnreadCount(headers appHttp.Headers) (*lemmyResponse.GetUnreadCountResponse, error) {
+	return defaultHandler[lemmyResponse.GetUnreadCountResponse](receiver.client, "/user/unread_count", router.HttpMethodGet, nil, headers)
+}
+
+func (receiver *LemmyBackend) GetUser(request *lemmyRequest.GetUserRequest, headers appHttp.Headers) (*lemmyResponse.GetUserResponse, error) {
+	return defaultHandler[lemmyResponse.GetUserResponse](receiver.client, "/user", router.HttpMethodGet, request, headers)
+}
+
+func (receiver *LemmyBackend) BlockPerson(request *lemmyRequest.BlockPersonRequest, headers appHttp.Headers) (*lemmyResponse.BlockPersonResponse, error) {
+	return defaultHandler[lemmyResponse.BlockPersonResponse](receiver.client, "/user/block", router.HttpMethodPost, request, headers)
+}
+
+func (receiver *LemmyBackend) SaveUserSettings(request *lemmyRequest.SaveUserSettingsRequest, headers appHttp.Headers) (*lemmyResponse.SaveUserSettingsResponse, error) {
+	return defaultHandler[lemmyResponse.SaveUserSettingsResponse](receiver.client, "/user/save_user_settings", router.HttpMethodPut, request, headers)
+}
+
+func (receiver *LemmyBackend) Search(request *lemmyRequest.SearchRequest, headers appHttp.Headers) (*lemmyResponse.SearchResponse, error) {
+	return defaultHandler[lemmyResponse.SearchResponse](receiver.client, "/search", router.HttpMethodGet, request, headers)
+}

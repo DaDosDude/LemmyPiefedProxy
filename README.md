@@ -99,15 +99,15 @@ and fetch, outside `/api/v3` since that's where real clients send them).
 
 ## Features not working yet
 
-**Backend pluggability covers Post, Comment, and Community.** User,
-Search, Site, and Upload controllers still talk to a Piefed-shaped
+**Backend pluggability covers Post, Comment, Community, User, and
+Search.** Site and Upload controllers still talk to a Piefed-shaped
 client directly regardless of `BACKEND_TYPE` — not migrated yet.
 
 **Frontend pluggability (0.17.x wire format) is done — every endpoint
-this proxy implements works on both wire formats.** User, Search, and
-Site are on the Frontend axis but not the Backend one yet; Upload
-doesn't need Frontend-axis work at all, since `pictrs/image` is
-version-agnostic by nature.
+this proxy implements works on both wire formats.** Site is on the
+Frontend axis but not the Backend one yet; Upload doesn't need
+Frontend-axis work at all, since `pictrs/image` is version-agnostic by
+nature.
 
 **Not implemented in Piefed itself**, confirmed from Piefed's own source
 — not a translation gap, there's nothing on Piefed's side to translate
