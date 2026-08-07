@@ -4,6 +4,7 @@ import (
 	"LemmyBeProxy/dto/model/lemmy"
 	"LemmyBeProxy/dto/model/lemmy017"
 	"LemmyBeProxy/helper"
+	"strings"
 )
 
 // ConvertPersonTo017 fills in the two fields 0.17.2's real PersonSafe
@@ -222,7 +223,12 @@ func ConvertLocalSiteTo017(in lemmy.LocalSite) lemmy017.LocalSite {
 		FederationWorkerCount:      0,
 		CaptchaEnabled:             in.CaptchaEnabled,
 		CaptchaDifficulty:          in.CaptchaDifficulty,
-		RegistrationMode:           string(in.RegistrationMode),
+		// Confirmed the ONLY enum in real 0.17.2's entire source with
+		// #[serde(rename_all = "lowercase")] — every other enum
+		// (SortType, ListingType, CommentSortType, SubscribedType, etc.)
+		// uses standard PascalCase like canonical does, so this
+		// lowercasing is specific to RegistrationMode alone.
+		RegistrationMode: strings.ToLower(string(in.RegistrationMode)),
 		ReportsEmailAdmins:         in.ReportsEmailAdmin,
 		Published:                  in.Published,
 		Updated:                    in.Updated,

@@ -14,9 +14,9 @@ import (
 // draw this from. DefaultPostLanguage is nil.
 type GetCommunityResponse struct {
 	CommunityView       model017.CommunityView         `json:"community_view" validate:"required"`
-	Site                *lemmy.Site                    `json:"site,omitempty"`
+	Site                *lemmy.Site                    `json:"site"`
 	Moderators          []model017.CommunityModeratorView `json:"moderators" validate:"required"`
 	Online              uint                           `json:"online" validate:"required"`
 	DiscussionLanguages []uint                         `json:"discussion_languages" validate:"required"`
-	DefaultPostLanguage *uint                          `json:"default_post_language,omitempty"`
+	DefaultPostLanguage *uint                          `json:"default_post_language"`
 }

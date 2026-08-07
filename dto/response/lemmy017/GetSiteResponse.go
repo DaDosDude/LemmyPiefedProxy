@@ -17,10 +17,10 @@ type GetSiteResponse struct {
 	Admins              []model017.PersonView `json:"admins" validate:"required"`
 	Online              uint                  `json:"online" validate:"required"`
 	Version             string                `json:"version" validate:"required"`
-	MyUser              *model017.MyUserInfo  `json:"my_user,omitempty"`
+	MyUser              *model017.MyUserInfo  `json:"my_user"`
 	AllLanguages        []lemmy.Language      `json:"all_languages" validate:"required"`
 	DiscussionLanguages []uint                `json:"discussion_languages" validate:"required"`
-	Taglines            []lemmy.Tagline       `json:"taglines,omitempty"`
-	FederatedInstances  *struct{}             `json:"federated_instances,omitempty"`
+	Taglines            []lemmy.Tagline       `json:"taglines"`
+	FederatedInstances  *struct{}             `json:"federated_instances"`
 }
 

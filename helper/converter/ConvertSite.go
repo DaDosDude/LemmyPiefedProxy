@@ -11,6 +11,21 @@ func ConvertSite(in *piefed.Site, actor ap.Actor) *lemmy.Site {
 		return nil
 	}
 
+	// LastRefreshedAt was a genuine, marked "todo" left as an empty
+	// string until now — real Lemmy's Site struct requires this to be a
+	// valid datetime, and an empty string fails to deserialize entirely
+	// on strict Rust/serde clients (confirmed directly: this broke
+	// lemmyBB with a parse error, since Rust's chrono can't parse an
+	// empty string as a datetime). actor.Updated is the closest real
+	// equivalent available — it's literally when this ActivityPub
+	// actor's data was last updated, which is what this field means.
+	// It's optional (not every actor has been updated since creation),
+	// so fall back to Published, which every actor has.
+	lastRefreshedAt := actor.Published
+	if actor.Updated != nil {
+		lastRefreshedAt = *actor.Updated
+	}
+
 	return &lemmy.Site{
 		ActorId:         in.ActorId,
 		Banner:          nil,
@@ -20,7 +35,7 @@ func ConvertSite(in *piefed.Site, actor ap.Actor) *lemmy.Site {
 		Id:              0, // todo
 		InboxUrl:        actor.Inbox,
 		InstanceId:      0,  // todo
-		LastRefreshedAt: "", // todo
+		LastRefreshedAt: lastRefreshedAt,
 		Name:            in.Name,
 		PublicKey:       actor.PublicKey.PublicKeyPem,
 		Published:       actor.Published,

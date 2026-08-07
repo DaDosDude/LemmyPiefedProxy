@@ -16,5 +16,5 @@ import model017 "LemmyBeProxy/dto/model/lemmy017"
 type CommentResponse struct {
 	CommentView  model017.CommentView `json:"comment_view" validate:"required"`
 	RecipientIds []uint               `json:"recipient_ids" validate:"required"`
-	FormId       *string              `json:"form_id,omitempty"`
+	FormId       *string              `json:"form_id"`
 }

@@ -37,6 +37,14 @@ var activeBackend backend.Backend
 // is version-agnostic by nature.
 var activeFrontend frontend.Frontend
 
+// FrontendVersion is the raw FRONTEND_VERSION value ("0.19" or "0.17"),
+// exported so main.go can apply 0.17-specific post-processing (stripping
+// timezone suffixes from timestamps — real Lemmy 0.17.x uses
+// chrono::NaiveDateTime, which has no timezone concept and rejects one
+// if present) without main needing its own copy of this logic or a
+// circular import back into this package from a lower-level one.
+var FrontendVersion string
+
 func init() {
 	if port, exists := os.LookupEnv("PORT"); exists {
 		parsed, err := strconv.Atoi(port)
@@ -96,6 +104,7 @@ func init() {
 	default:
 		panic(fmt.Sprintf("unknown FRONTEND_VERSION %q — expected \"0.19\" or \"0.17\"", frontendVersion))
 	}
+	FrontendVersion = frontendVersion
 
 	AppRouter = router.NewRouter()
 

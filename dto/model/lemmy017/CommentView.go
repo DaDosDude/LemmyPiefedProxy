@@ -19,5 +19,5 @@ type CommentView struct {
 	Subscribed                 lemmy.SubscribedType `json:"subscribed" validate:"required"`
 	Saved                      bool                 `json:"saved" validate:"required"`
 	CreatorBlocked             bool                 `json:"creator_blocked" validate:"required"`
-	MyVote                     *int                 `json:"my_vote,omitempty"`
+	MyVote                     *int                 `json:"my_vote"`
 }

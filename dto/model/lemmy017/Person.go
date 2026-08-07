@@ -20,18 +20,18 @@ package lemmy017
 type Person struct {
 	Id           uint    `json:"id" validate:"required"`
 	Name         string  `json:"name" validate:"required"`
-	DisplayName  *string `json:"display_name,omitempty"`
-	Avatar       *string `json:"avatar,omitempty"`
+	DisplayName  *string `json:"display_name"`
+	Avatar       *string `json:"avatar"`
 	Banned       bool    `json:"banned" validate:"required"`
 	Published    string  `json:"published" validate:"required"`
-	Updated      *string `json:"updated,omitempty"`
+	Updated      *string `json:"updated"`
 	ActorId      string  `json:"actor_id" validate:"required"`
-	Bio          *string `json:"bio,omitempty"`
+	Bio          *string `json:"bio"`
 	Local        bool    `json:"local" validate:"required"`
-	Banner       *string `json:"banner,omitempty"`
+	Banner       *string `json:"banner"`
 	Deleted      bool    `json:"deleted" validate:"required"`
 	InboxUrl     string  `json:"inbox_url" validate:"required"`
-	MatrixUserId *string `json:"matrix_user_id,omitempty"`
+	MatrixUserId *string `json:"matrix_user_id"`
 	Admin        bool    `json:"admin"`
 	BotAccount   bool    `json:"bot_account"`
 	InstanceId   uint    `json:"instance_id" validate:"required"`

@@ -10,7 +10,7 @@ package lemmy017
 type LocalUserSettings struct {
 	Id                       uint    `json:"id" validate:"required"`
 	PersonId                 uint    `json:"person_id" validate:"required"`
-	Email                    *string `json:"email,omitempty"`
+	Email                    *string `json:"email"`
 	ShowNsfw                 bool    `json:"show_nsfw" validate:"required"`
 	Theme                    string  `json:"theme" validate:"required"`
 	DefaultSortType          int16   `json:"default_sort_type" validate:"required"`

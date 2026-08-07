@@ -20,5 +20,5 @@ type LocalSiteRateLimit struct {
 	Search            uint    `json:"search" validate:"required"`
 	SearchPerSecond   uint    `json:"search_per_second" validate:"required"`
 	Published         string  `json:"published" validate:"required"`
-	Updated           *string `json:"updated,omitempty"`
+	Updated           *string `json:"updated"`
 }

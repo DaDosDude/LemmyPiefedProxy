@@ -15,14 +15,14 @@ type LocalSite struct {
 	EnableNsfw                 bool    `json:"enable_nsfw" validate:"required"`
 	CommunityCreationAdminOnly bool    `json:"community_creation_admin_only" validate:"required"`
 	RequireEmailVerification   bool    `json:"require_email_verification" validate:"required"`
-	ApplicationQuestion        *string `json:"application_question,omitempty"`
+	ApplicationQuestion        *string `json:"application_question"`
 	PrivateInstance            bool    `json:"private_instance" validate:"required"`
 	DefaultTheme               string  `json:"default_theme" validate:"required"`
 	DefaultPostListingType     string  `json:"default_post_listing_type" validate:"required"`
-	LegalInformation           *string `json:"legal_information,omitempty"`
+	LegalInformation           *string `json:"legal_information"`
 	HideModlogModNames         bool    `json:"hide_modlog_mod_names" validate:"required"`
 	ApplicationEmailAdmins     bool    `json:"application_email_admins" validate:"required"`
-	SlurFilterRegex            *string `json:"slur_filter_regex,omitempty"`
+	SlurFilterRegex            *string `json:"slur_filter_regex"`
 	ActorNameMaxLength         uint    `json:"actor_name_max_length" validate:"required"`
 	FederationEnabled          bool    `json:"federation_enabled" validate:"required"`
 	FederationDebug            bool    `json:"federation_debug" validate:"required"`
@@ -32,5 +32,5 @@ type LocalSite struct {
 	RegistrationMode           string  `json:"registration_mode" validate:"required"`
 	ReportsEmailAdmins         bool    `json:"reports_email_admins" validate:"required"`
 	Published                  string  `json:"published" validate:"required"`
-	Updated                    *string `json:"updated,omitempty"`
+	Updated                    *string `json:"updated"`
 }

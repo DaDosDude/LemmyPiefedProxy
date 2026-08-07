@@ -18,6 +18,6 @@ type PostView struct {
 	Saved                      bool                 `json:"saved" validate:"required"`
 	Read                       bool                 `json:"read" validate:"required"`
 	CreatorBlocked             bool                 `json:"creator_blocked" validate:"required"`
-	MyVote                     *int                 `json:"my_vote,omitempty"`
+	MyVote                     *int                 `json:"my_vote"`
 	UnreadComments             uint                 `json:"unread_comments" validate:"required"`
 }

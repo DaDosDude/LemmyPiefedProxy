@@ -132,6 +132,19 @@ func main() {
 			return
 		}
 
+		// See helper.StripTimezoneSuffixes for why this is needed: real
+		// Lemmy 0.17.x rejects the timezone suffix our canonical model's
+		// timestamps carry. This runs once here, after every controller
+		// and Frontend017 conversion has already produced its normal
+		// result, rather than being threaded through every individual
+		// converter — see that function's own comment for the reasoning.
+		if config.FrontendVersion == "0.17" {
+			marshaled, jsonErr := json.Marshal(result.Body)
+			if jsonErr == nil {
+				result.Body = string(helper.StripTimezoneSuffixes(marshaled))
+			}
+		}
+
 		appHttp.WriteHttpResponse(result, writer)
 	})
 
