@@ -82,9 +82,11 @@ curl -s "https://your-domain.example/api/v3/site" | head -c 200
   query string instead of an `Authorization` header) — applied centrally
   to every route, not endpoint-specific
 - Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, Community,
-  User (except `save_user_settings`, see below), Search, and Site (fully,
-  including `my_user`) endpoints, verified against Lemmy's real 0.17.2
-  source. Upload hasn't been checked yet — see Features not working yet.
+  User, Search, and Site endpoints, all verified against Lemmy's real
+  0.17.2 source. `pictrs/image` needs no version-specific handling at
+  all and works as-is — confirmed directly against lemmyBB's own upload
+  code, which uses the identical field name and response shape. That's
+  full 0.17.x coverage of every endpoint this proxy implements.
 
 **Endpoints implemented and tested against a live Piefed instance:**
 `user/login`, `user/unread_count`, `user`, `user/block`,
@@ -101,21 +103,11 @@ and fetch, outside `/api/v3` since that's where real clients send them).
 Search, Site, and Upload controllers still talk to a Piefed-shaped
 client directly regardless of `BACKEND_TYPE` — not migrated yet.
 
-**Frontend pluggability (0.17.x wire format) covers Post, Comment,
-Community, Search, Site, and most of User.** Upload still assumes the
-current wire format directly regardless of `FRONTEND_VERSION` — not
-checked yet. The two axes are independent and don't move in lockstep:
-Community, User, Search, and Site are on the Frontend axis but not the
-Backend one.
-
-**`save_user_settings` isn't part of the 0.17.x migration yet, though the
-hard part is now solved.** Real 0.17.x encodes `default_sort_type`/
-`default_listing_type` as raw numeric enum indices on this endpoint,
-unlike every other sort-bearing endpoint (which use string names). The
-enum mapping this needs was built as part of `MyUserInfo`
-(`ConvertSortTypeToIndex017`/`ConvertListingTypeToIndex017`) — wiring
-`save_user_settings` up to reuse it is smaller remaining work than it
-was, just not done yet.
+**Frontend pluggability (0.17.x wire format) is done — every endpoint
+this proxy implements works on both wire formats.** Community, User,
+Search, and Site are on the Frontend axis but not the Backend one yet;
+Upload doesn't need Frontend-axis work at all, since `pictrs/image` is
+version-agnostic by nature.
 
 **Not implemented in Piefed itself**, confirmed from Piefed's own source
 — not a translation gap, there's nothing on Piefed's side to translate

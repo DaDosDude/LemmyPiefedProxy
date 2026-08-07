@@ -162,7 +162,7 @@ func (receiver *UserController) BlockPerson(request *http.Request) (*http.Respon
 // endpoint — a genuinely separate translation problem, deferred rather
 // than rushed.
 func (receiver *UserController) SaveUserSettings(request *http.Request) (*http.Response, error) {
-	reqDto, err := helper.ParseRequest[lemmy.SaveUserSettingsRequest](request)
+	reqDto, err := receiver.frontend.ParseSaveUserSettingsRequest(request)
 	if err != nil {
 		return helper.ConvertValidationErrorsToResponse(err), nil
 	}
@@ -181,8 +181,7 @@ func (receiver *UserController) SaveUserSettings(request *http.Request) (*http.R
 		return nil, err
 	}
 
-	return &http.Response{
-		StatusCode: goHttp.StatusOK,
-		Body:       &lemmyResponse.SaveUserSettingsResponse{},
-	}, nil
+	canonical := &lemmyResponse.SaveUserSettingsResponse{}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildSaveUserSettingsResponse(canonical)}, nil
 }

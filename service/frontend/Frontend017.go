@@ -377,3 +377,40 @@ func (receiver *Frontend017) BuildGetSiteResponse(resp *lemmyResponse.GetSiteRes
 		FederatedInstances:  nil,
 	}
 }
+
+// ParseSaveUserSettingsRequest converts 0.17.2's real, simpler field set
+// (no default_comment_sort_type at all — a 0.17.x client genuinely can't
+// set that preference) into canonical's shape. DefaultSortType/
+// DefaultListingType use the same numeric-index mapping built for
+// MyUserInfo. Fields with no canonical equivalent (avatar, banner,
+// display_name, email, bio, matrix_user_id, bot_account,
+// show_new_post_notifs) are simply not forwarded — canonical has no
+// field for them, same "accepted but nothing to forward to" pattern as
+// everywhere else in this endpoint.
+func (receiver *Frontend017) ParseSaveUserSettingsRequest(request *http.Request) (*lemmyRequest.SaveUserSettingsRequest, error) {
+	reqDto, err := helper.ParseRequest[lemmyRequest017.SaveUserSettingsRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lemmyRequest.SaveUserSettingsRequest{
+		ShowNsfw: reqDto.ShowNsfw,
+		DefaultSortType: helper.SafeDereference(reqDto.DefaultSortType, func(in int16) *string {
+			return helper.ToPointer(string(converter.ConvertIndex017ToSortType(in)))
+		}),
+		DefaultListingType: helper.SafeDereference(reqDto.DefaultListingType, func(in int16) *string {
+			return helper.ToPointer(string(converter.ConvertIndex017ToListingType(in)))
+		}),
+		InterfaceLanguage:        reqDto.InterfaceLanguage,
+		ShowAvatars:              reqDto.ShowAvatars,
+		ShowScores:               reqDto.ShowScores,
+		SendNotificationsToEmail: reqDto.SendNotificationsToEmail,
+		ShowBotAccounts:          reqDto.ShowBotAccounts,
+		ShowReadPosts:            reqDto.ShowReadPosts,
+		DiscussionLanguages:      reqDto.DiscussionLanguages,
+	}, nil
+}
+
+func (receiver *Frontend017) BuildSaveUserSettingsResponse(resp *lemmyResponse.SaveUserSettingsResponse) any {
+	return resp
+}

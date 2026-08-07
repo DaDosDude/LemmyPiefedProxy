@@ -160,3 +160,11 @@ func (receiver *Frontend019) BuildSearchResponse(resp *lemmyResponse.SearchRespo
 func (receiver *Frontend019) BuildGetSiteResponse(resp *lemmyResponse.GetSiteResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) ParseSaveUserSettingsRequest(request *http.Request) (*lemmyRequest.SaveUserSettingsRequest, error) {
+	return helper.ParseRequest[lemmyRequest.SaveUserSettingsRequest](request)
+}
+
+func (receiver *Frontend019) BuildSaveUserSettingsResponse(resp *lemmyResponse.SaveUserSettingsResponse) any {
+	return resp
+}

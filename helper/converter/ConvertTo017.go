@@ -380,6 +380,50 @@ func ConvertMyUserInfoTo017(in *lemmy.MyUserInfo) *lemmy017.MyUserInfo {
 		DiscussionLanguages: in.DiscussionLanguages,
 	}
 }
+// sortIndexTo017Type is the inverse of sortTypeTo017Index, used when
+// parsing an incoming 0.17.x request (numeric index) into canonical's
+// string-based SortType.
+var sortIndexTo017Type = map[int16]lemmy.SortType{
+	0:  lemmy.SortTypeActive,
+	1:  lemmy.SortTypeHot,
+	2:  lemmy.SortTypeNew,
+	3:  lemmy.SortTypeOld,
+	4:  lemmy.SortTypeTopDay,
+	5:  lemmy.SortTypeTopWeek,
+	6:  lemmy.SortTypeTopMonth,
+	7:  lemmy.SortTypeTopYear,
+	8:  lemmy.SortTypeTopAll,
+	9:  lemmy.SortTypeMostComments,
+	10: lemmy.SortTypeNewComments,
+}
+
+// ConvertIndex017ToSortType converts a 0.17.2 numeric sort-type index
+// back to canonical's string-based SortType. Falls back to Hot for an
+// out-of-range index.
+func ConvertIndex017ToSortType(index int16) lemmy.SortType {
+	if sortType, ok := sortIndexTo017Type[index]; ok {
+		return sortType
+	}
+	return lemmy.SortTypeHot
+}
+
+// listingIndexTo017Type is the inverse of listingTypeTo017Index.
+var listingIndexTo017Type = map[int16]lemmy.ListingType{
+	0: lemmy.ListingTypeAll,
+	1: lemmy.ListingTypeLocal,
+	2: lemmy.ListingTypeSubscribed,
+}
+
+// ConvertIndex017ToListingType converts a 0.17.2 numeric listing-type
+// index back to canonical's string-based ListingType. Falls back to
+// All for an out-of-range index.
+func ConvertIndex017ToListingType(index int16) lemmy.ListingType {
+	if listingType, ok := listingIndexTo017Type[index]; ok {
+		return listingType
+	}
+	return lemmy.ListingTypeAll
+}
+
 // ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
 // canonical one, applying both conversions above.
 func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {
