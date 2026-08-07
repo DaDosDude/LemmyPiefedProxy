@@ -15,12 +15,10 @@ import (
 )
 
 // UserController uses frontend.Frontend for the endpoints migrated so
-// far (Login, GetUnreadCount, GetUser, BlockPerson). Register,
-// GetReportCount, and SaveUserSettings are unmigrated — Register and
-// GetReportCount are stub responses regardless of wire format, and
-// SaveUserSettings's 0.17.x translation is deferred (numeric sort-type
-// enum indices, a genuinely separate problem — see the project's
-// Features not working yet).
+// far (Login, GetUnreadCount, GetUser, BlockPerson, SaveUserSettings).
+// Register and GetReportCount are unmigrated — both are stub responses
+// regardless of wire format, so there's nothing version-specific for
+// Frontend to actually do for them.
 type UserController struct {
 	piefed   *pfService.Piefed
 	frontend frontend.Frontend
@@ -156,11 +154,11 @@ func (receiver *UserController) BlockPerson(request *http.Request) (*http.Respon
 // server-side on a Piefed-backed instance regardless of what this proxy
 // does, since Piefed has no field for it at all.
 //
-// Not migrated onto frontend.Frontend yet: 0.17.x's real SaveUserSettings
+// Migrated onto frontend.Frontend — 0.17.x's real SaveUserSettings
 // encodes default_sort_type/default_listing_type as raw numeric enum
 // indices rather than string names, unlike every other sort-bearing
-// endpoint — a genuinely separate translation problem, deferred rather
-// than rushed.
+// endpoint. Frontend017.ParseSaveUserSettingsRequest handles that
+// translation using the same enum mapping built for MyUserInfo.
 func (receiver *UserController) SaveUserSettings(request *http.Request) (*http.Response, error) {
 	reqDto, err := receiver.frontend.ParseSaveUserSettingsRequest(request)
 	if err != nil {
