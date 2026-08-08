@@ -90,12 +90,15 @@ curl -s "https://your-domain.example/api/v3/site" | head -c 200
   field name and response shape. That's full 0.17.x coverage of every
   endpoint this proxy implements.
 
-**Endpoints implemented and tested against a live Piefed instance:**
-`user/login`, `user/unread_count`, `user`, `user/block`,
+**Endpoints implemented and tested against live Piefed and real Lemmy
+instances:** `user/login`, `user/unread_count`, `user`, `user/block`,
 `user/save_user_settings` (Piefed only supports a subset of fields — see
-Features not working yet), `site`, `post/list`, `post` (get/create/edit),
-`post/like`, `post/mark_as_read`, `comment/list`, `comment`
-(get/create), `comment/like`, `community`, `community/list`,
+Features not working yet), `user/mention`, `user/replies`,
+`private_message/list` (Piefed has no equivalent for these three —
+returns an honest empty list rather than a 404, see Features not
+working yet), `site`, `resolve_object`, `post/list`, `post`
+(get/create/edit), `post/like`, `post/mark_as_read`, `comment/list`,
+`comment` (get/create), `comment/like`, `community`, `community/list`,
 `community/follow`, `community/block`, `search`, `pictrs/image` (upload
 and fetch, outside `/api/v3` since that's where real clients send them).
 
@@ -123,6 +126,19 @@ deletion, email verification, admin tools, custom emoji.
 - `save_user_settings` silently drops fields Piefed has no equivalent
   for (most notably mlmym's "endless scrolling," which can never persist
   server-side against Piefed) rather than failing the whole save.
+- `user/mention`, `user/replies`, and `private_message/list` always
+  return an empty list against Piefed — Piefed has unread *counts* for
+  these but no equivalent endpoint to fetch the actual items in the same
+  shape Lemmy has them. Real Lemmy backends return the genuine list.
+  Returning empty rather than 404 matters concretely: a 404 here is
+  exactly what crashes a real Lemmy client (lemmyBB included), since
+  these are fetched on every authenticated page load.
+- `resolve_object` (used by lemmyBB's frontpage category configuration,
+  among other things) only resolves *remote/federated* objects when the
+  request is authenticated — confirmed as genuine Lemmy API behavior,
+  not a proxy limitation. A community you're personally subscribed to
+  resolves fine for you, but won't resolve for anonymous visitors unless
+  it's local to the instance you're querying.
 - 0.17.x `mark_as_read` returns the canonical `{success: bool}` shape
   instead of real 0.17.x's `PostResponse{post_view}` — building the
   latter needs an extra backend round-trip, deferred rather than rushed.
