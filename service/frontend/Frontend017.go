@@ -414,3 +414,39 @@ func (receiver *Frontend017) ParseSaveUserSettingsRequest(request *http.Request)
 func (receiver *Frontend017) BuildSaveUserSettingsResponse(resp *lemmyResponse.SaveUserSettingsResponse) any {
 	return resp
 }
+
+// ParseGetPersonMentionsRequest reuses the canonical parse directly —
+// 0.17.2's real GetPersonMentions matches exactly.
+func (receiver *Frontend017) ParseGetPersonMentionsRequest(request *http.Request) (*lemmyRequest.GetPersonMentionsRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetPersonMentionsRequest](request)
+}
+
+func (receiver *Frontend017) BuildGetPersonMentionsResponse(resp *lemmyResponse.GetPersonMentionsResponse) any {
+	return &lemmyResponse017.GetPersonMentionsResponse{
+		Mentions: helper.MapSlice(resp.Mentions, converter.ConvertPersonMentionViewTo017),
+	}
+}
+
+// ParseGetRepliesRequest reuses the canonical parse directly — 0.17.2's
+// real GetReplies matches exactly.
+func (receiver *Frontend017) ParseGetRepliesRequest(request *http.Request) (*lemmyRequest.GetRepliesRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetRepliesRequest](request)
+}
+
+func (receiver *Frontend017) BuildGetRepliesResponse(resp *lemmyResponse.GetRepliesResponse) any {
+	return &lemmyResponse017.GetRepliesResponse{
+		Replies: helper.MapSlice(resp.Replies, converter.ConvertCommentReplyViewTo017),
+	}
+}
+
+// ParseGetPrivateMessagesRequest reuses the canonical parse directly —
+// 0.17.2's real GetPrivateMessages matches exactly.
+func (receiver *Frontend017) ParseGetPrivateMessagesRequest(request *http.Request) (*lemmyRequest.GetPrivateMessagesRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetPrivateMessagesRequest](request)
+}
+
+func (receiver *Frontend017) BuildGetPrivateMessagesResponse(resp *lemmyResponse.GetPrivateMessagesResponse) any {
+	return &lemmyResponse017.GetPrivateMessagesResponse{
+		PrivateMessages: helper.MapSlice(resp.PrivateMessages, converter.ConvertPrivateMessageViewTo017),
+	}
+}

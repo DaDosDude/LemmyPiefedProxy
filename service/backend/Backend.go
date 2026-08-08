@@ -16,7 +16,8 @@ import (
 // match.
 //
 // This interface now covers every endpoint this proxy implements — Post,
-// Comment, Community, User, Search, Site, and Upload.
+// Comment, Community, User, Search, Site, Upload, and notifications
+// (mentions, replies, private messages).
 type Backend interface {
 	GetPosts(request *lemmyRequest.GetPostsRequest, headers http.Headers) (*lemmyResponse.GetPostsResponse, error)
 	GetPost(request *lemmyRequest.GetPostRequest, headers http.Headers) (*lemmyResponse.GetPostResponse, error)
@@ -59,4 +60,15 @@ type Backend interface {
 	// header — each backend applies it however its own upload endpoint
 	// actually expects auth.
 	UploadImage(fileBytes []byte, filename string, jwt string) (string, error)
+
+	// GetPersonMentions, GetReplies, and GetPrivateMessages are fetched
+	// on every authenticated page load by real Lemmy clients (lemmyBB
+	// included) to populate notification/message counts — a client
+	// crashes outright if any of the three 404s. Piefed doesn't have
+	// person mentions, comment replies, or private messages as concepts
+	// in the same shape, so PiefedBackend's implementation of these is
+	// necessarily limited — see its own comments.
+	GetPersonMentions(request *lemmyRequest.GetPersonMentionsRequest, headers http.Headers) (*lemmyResponse.GetPersonMentionsResponse, error)
+	GetReplies(request *lemmyRequest.GetRepliesRequest, headers http.Headers) (*lemmyResponse.GetRepliesResponse, error)
+	GetPrivateMessages(request *lemmyRequest.GetPrivateMessagesRequest, headers http.Headers) (*lemmyResponse.GetPrivateMessagesResponse, error)
 }

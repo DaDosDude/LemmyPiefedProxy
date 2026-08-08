@@ -89,4 +89,13 @@ type Frontend interface {
 
 	ParseSaveUserSettingsRequest(request *http.Request) (*lemmyRequest.SaveUserSettingsRequest, error)
 	BuildSaveUserSettingsResponse(resp *lemmyResponse.SaveUserSettingsResponse) any
+
+	ParseGetPersonMentionsRequest(request *http.Request) (*lemmyRequest.GetPersonMentionsRequest, error)
+	BuildGetPersonMentionsResponse(resp *lemmyResponse.GetPersonMentionsResponse) any
+
+	ParseGetRepliesRequest(request *http.Request) (*lemmyRequest.GetRepliesRequest, error)
+	BuildGetRepliesResponse(resp *lemmyResponse.GetRepliesResponse) any
+
+	ParseGetPrivateMessagesRequest(request *http.Request) (*lemmyRequest.GetPrivateMessagesRequest, error)
+	BuildGetPrivateMessagesResponse(resp *lemmyResponse.GetPrivateMessagesResponse) any
 }

@@ -180,3 +180,15 @@ func (receiver *LemmyBackend) UploadImage(fileBytes []byte, filename string, jwt
 
 	return fmt.Sprintf("%s/pictrs/image/%s", receiver.client.baseURL(), response.Files[0].File), nil
 }
+
+func (receiver *LemmyBackend) GetPersonMentions(request *lemmyRequest.GetPersonMentionsRequest, headers appHttp.Headers) (*lemmyResponse.GetPersonMentionsResponse, error) {
+	return defaultHandler[lemmyResponse.GetPersonMentionsResponse](receiver.client, "/user/mention", router.HttpMethodGet, request, headers)
+}
+
+func (receiver *LemmyBackend) GetReplies(request *lemmyRequest.GetRepliesRequest, headers appHttp.Headers) (*lemmyResponse.GetRepliesResponse, error) {
+	return defaultHandler[lemmyResponse.GetRepliesResponse](receiver.client, "/user/replies", router.HttpMethodGet, request, headers)
+}
+
+func (receiver *LemmyBackend) GetPrivateMessages(request *lemmyRequest.GetPrivateMessagesRequest, headers appHttp.Headers) (*lemmyResponse.GetPrivateMessagesResponse, error) {
+	return defaultHandler[lemmyResponse.GetPrivateMessagesResponse](receiver.client, "/private_message/list", router.HttpMethodGet, request, headers)
+}

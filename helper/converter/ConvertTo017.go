@@ -430,6 +430,54 @@ func ConvertIndex017ToListingType(index int16) lemmy.ListingType {
 	return lemmy.ListingTypeAll
 }
 
+// ConvertPersonMentionViewTo017 assembles a full 0.17.x-shaped
+// PersonMentionView from the canonical one.
+func ConvertPersonMentionViewTo017(in lemmy.PersonMentionView) lemmy017.PersonMentionView {
+	return lemmy017.PersonMentionView{
+		PersonMention:              in.PersonMention,
+		Comment:                    in.Comment,
+		Creator:                    ConvertPersonTo017(in.Creator),
+		Post:                       in.Post,
+		Community:                  in.Community,
+		Recipient:                  ConvertPersonTo017(in.Recipient),
+		Counts:                     ConvertCommentAggregatesTo017(in.Counts),
+		CreatorBannedFromCommunity: in.CreatorBannedFromCommunity,
+		Subscribed:                 in.Subscribed,
+		Saved:                      in.Saved,
+		CreatorBlocked:             in.CreatorBlocked,
+		MyVote:                     in.MyVote,
+	}
+}
+
+// ConvertCommentReplyViewTo017 assembles a full 0.17.x-shaped
+// CommentReplyView from the canonical one.
+func ConvertCommentReplyViewTo017(in lemmy.CommentReplyView) lemmy017.CommentReplyView {
+	return lemmy017.CommentReplyView{
+		CommentReply:               in.CommentReply,
+		Comment:                    in.Comment,
+		Creator:                    ConvertPersonTo017(in.Creator),
+		Post:                       in.Post,
+		Community:                  in.Community,
+		Recipient:                  ConvertPersonTo017(in.Recipient),
+		Counts:                     ConvertCommentAggregatesTo017(in.Counts),
+		CreatorBannedFromCommunity: in.CreatorBannedFromCommunity,
+		Subscribed:                 in.Subscribed,
+		Saved:                      in.Saved,
+		CreatorBlocked:             in.CreatorBlocked,
+		MyVote:                     in.MyVote,
+	}
+}
+
+// ConvertPrivateMessageViewTo017 assembles a full 0.17.x-shaped
+// PrivateMessageView from the canonical one.
+func ConvertPrivateMessageViewTo017(in lemmy.PrivateMessageView) lemmy017.PrivateMessageView {
+	return lemmy017.PrivateMessageView{
+		PrivateMessage: in.PrivateMessage,
+		Creator:        ConvertPersonTo017(in.Creator),
+		Recipient:      ConvertPersonTo017(in.Recipient),
+	}
+}
+
 // ConvertPostViewTo017 assembles a full 0.17.x-shaped PostView from the
 // canonical one, applying both conversions above.
 func ConvertPostViewTo017(in lemmy.PostView) lemmy017.PostView {

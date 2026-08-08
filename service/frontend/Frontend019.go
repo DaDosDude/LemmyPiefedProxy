@@ -168,3 +168,27 @@ func (receiver *Frontend019) ParseSaveUserSettingsRequest(request *http.Request)
 func (receiver *Frontend019) BuildSaveUserSettingsResponse(resp *lemmyResponse.SaveUserSettingsResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) ParseGetPersonMentionsRequest(request *http.Request) (*lemmyRequest.GetPersonMentionsRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetPersonMentionsRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetPersonMentionsResponse(resp *lemmyResponse.GetPersonMentionsResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseGetRepliesRequest(request *http.Request) (*lemmyRequest.GetRepliesRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetRepliesRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetRepliesResponse(resp *lemmyResponse.GetRepliesResponse) any {
+	return resp
+}
+
+func (receiver *Frontend019) ParseGetPrivateMessagesRequest(request *http.Request) (*lemmyRequest.GetPrivateMessagesRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.GetPrivateMessagesRequest](request)
+}
+
+func (receiver *Frontend019) BuildGetPrivateMessagesResponse(resp *lemmyResponse.GetPrivateMessagesResponse) any {
+	return resp
+}

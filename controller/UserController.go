@@ -116,3 +116,45 @@ func (receiver *UserController) SaveUserSettings(request *http.Request) (*http.R
 
 	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildSaveUserSettingsResponse(resp)}, nil
 }
+
+func (receiver *UserController) GetPersonMentions(request *http.Request) (*http.Response, error) {
+	reqDto, err := receiver.frontend.ParseGetPersonMentionsRequest(request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.backend.GetPersonMentions(reqDto, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetPersonMentionsResponse(resp)}, nil
+}
+
+func (receiver *UserController) GetReplies(request *http.Request) (*http.Response, error) {
+	reqDto, err := receiver.frontend.ParseGetRepliesRequest(request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.backend.GetReplies(reqDto, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetRepliesResponse(resp)}, nil
+}
+
+func (receiver *UserController) GetPrivateMessages(request *http.Request) (*http.Response, error) {
+	reqDto, err := receiver.frontend.ParseGetPrivateMessagesRequest(request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.backend.GetPrivateMessages(reqDto, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetPrivateMessagesResponse(resp)}, nil
+}

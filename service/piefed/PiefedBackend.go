@@ -450,3 +450,27 @@ func (receiver *PiefedBackend) UploadImage(fileBytes []byte, filename string, jw
 
 	return resp.Url, nil
 }
+
+// GetPersonMentions, GetReplies, and GetPrivateMessages all return an
+// empty (not missing, not erroring) list against Piefed. Piefed exposes
+// unread counts for these (see GetUnreadCount above) but has no
+// equivalent endpoint to fetch the actual list of mentions, comment
+// replies, or private messages we've found — person mentions, comment
+// replies, and private messages aren't native Piefed concepts in the
+// same shape Lemmy has them. Returning an empty list rather than a 404
+// matters concretely: a 404 here is exactly what crashes a real Lemmy
+// client (lemmyBB included), since these are fetched on every
+// authenticated page load. This is a real, known gap — Piefed users
+// won't see their actual mentions/replies/messages through this proxy —
+// not a claim that Piefed's own notifications are being surfaced.
+func (receiver *PiefedBackend) GetPersonMentions(request *lemmyRequest.GetPersonMentionsRequest, headers appHttp.Headers) (*lemmyResponse.GetPersonMentionsResponse, error) {
+	return &lemmyResponse.GetPersonMentionsResponse{Mentions: []lemmyModel.PersonMentionView{}}, nil
+}
+
+func (receiver *PiefedBackend) GetReplies(request *lemmyRequest.GetRepliesRequest, headers appHttp.Headers) (*lemmyResponse.GetRepliesResponse, error) {
+	return &lemmyResponse.GetRepliesResponse{Replies: []lemmyModel.CommentReplyView{}}, nil
+}
+
+func (receiver *PiefedBackend) GetPrivateMessages(request *lemmyRequest.GetPrivateMessagesRequest, headers appHttp.Headers) (*lemmyResponse.GetPrivateMessagesResponse, error) {
+	return &lemmyResponse.GetPrivateMessagesResponse{PrivateMessages: []lemmyModel.PrivateMessageView{}}, nil
+}
