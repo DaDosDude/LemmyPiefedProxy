@@ -88,8 +88,20 @@ func NewLemmy(instance string) *Lemmy {
 	return &Lemmy{instance: instance}
 }
 
+// baseURL defaults to https:// for the normal case (a public domain). If
+// BACKEND_INSTANCE already includes a scheme (e.g.
+// "http://lemmy:8536" to reach a real Lemmy backend directly over its
+// internal Docker network, bypassing a public domain's reverse proxy —
+// and whatever's in front of it — entirely), that's used as-is.
+func (receiver *Lemmy) baseURL() string {
+	if strings.HasPrefix(receiver.instance, "http://") || strings.HasPrefix(receiver.instance, "https://") {
+		return receiver.instance
+	}
+	return "https://" + receiver.instance
+}
+
 func (receiver *Lemmy) url() string {
-	return fmt.Sprintf("https://%s/api/v3", receiver.instance)
+	return receiver.baseURL() + "/api/v3"
 }
 
 func (receiver *Lemmy) sendRequest(

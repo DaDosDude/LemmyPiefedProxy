@@ -138,7 +138,7 @@ func (receiver *LemmyBackend) UploadImage(fileBytes []byte, filename string, jwt
 
 	req, err := goHttp.NewRequest(
 		"POST",
-		fmt.Sprintf("https://%s/pictrs/image", receiver.client.instance),
+		fmt.Sprintf("%s/pictrs/image", receiver.client.baseURL()),
 		body,
 	)
 	if err != nil {
@@ -178,5 +178,5 @@ func (receiver *LemmyBackend) UploadImage(fileBytes []byte, filename string, jwt
 		return "", fmt.Errorf("lemmy image upload succeeded but returned no files")
 	}
 
-	return fmt.Sprintf("https://%s/pictrs/image/%s", receiver.client.instance, response.Files[0].File), nil
+	return fmt.Sprintf("%s/pictrs/image/%s", receiver.client.baseURL(), response.Files[0].File), nil
 }
