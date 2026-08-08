@@ -450,3 +450,26 @@ func (receiver *Frontend017) BuildGetPrivateMessagesResponse(resp *lemmyResponse
 		PrivateMessages: helper.MapSlice(resp.PrivateMessages, converter.ConvertPrivateMessageViewTo017),
 	}
 }
+
+// ParseResolveObjectRequest reuses the canonical parse directly —
+// 0.17.2's real ResolveObject (q, auth) matches exactly.
+func (receiver *Frontend017) ParseResolveObjectRequest(request *http.Request) (*lemmyRequest.ResolveObjectRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.ResolveObjectRequest](request)
+}
+
+func (receiver *Frontend017) BuildResolveObjectResponse(resp *lemmyResponse.ResolveObjectResponse) any {
+	result := &lemmyResponse017.ResolveObjectResponse{}
+	if resp.Comment != nil {
+		result.Comment = helper.ToPointer(converter.ConvertCommentViewTo017(*resp.Comment))
+	}
+	if resp.Post != nil {
+		result.Post = helper.ToPointer(converter.ConvertPostViewTo017(*resp.Post))
+	}
+	if resp.Community != nil {
+		result.Community = helper.ToPointer(converter.ConvertCommunityViewTo017(*resp.Community))
+	}
+	if resp.Person != nil {
+		result.Person = helper.ToPointer(converter.ConvertPersonViewTo017(*resp.Person))
+	}
+	return result
+}

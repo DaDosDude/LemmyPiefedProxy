@@ -474,3 +474,34 @@ func (receiver *PiefedBackend) GetReplies(request *lemmyRequest.GetRepliesReques
 func (receiver *PiefedBackend) GetPrivateMessages(request *lemmyRequest.GetPrivateMessagesRequest, headers appHttp.Headers) (*lemmyResponse.GetPrivateMessagesResponse, error) {
 	return &lemmyResponse.GetPrivateMessagesResponse{PrivateMessages: []lemmyModel.PrivateMessageView{}}, nil
 }
+
+// ResolveObject forwards to Piefed's own /resolve_object endpoint — see
+// dto/request/piefed/ResolveObjectRequest.go for a note on how that
+// path was determined (Piefed's release notes confirm the feature
+// exists; the exact path is a well-justified assumption based on every
+// other endpoint's established naming convention, not directly
+// source-verified).
+func (receiver *PiefedBackend) ResolveObject(request *lemmyRequest.ResolveObjectRequest, headers appHttp.Headers) (*lemmyResponse.ResolveObjectResponse, error) {
+	resp, err := receiver.client.ResolveObject(&piefedRequest.ResolveObjectRequest{
+		Q: request.Q,
+	}, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	canonical := &lemmyResponse.ResolveObjectResponse{}
+	if resp.Comment != nil {
+		canonical.Comment = helper.ToPointer(converter.ConvertCommentView(*resp.Comment))
+	}
+	if resp.Post != nil {
+		canonical.Post = helper.ToPointer(converter.ConvertPostView(*resp.Post))
+	}
+	if resp.Community != nil {
+		canonical.Community = helper.ToPointer(converter.ConvertCommunityView(*resp.Community))
+	}
+	if resp.Person != nil {
+		canonical.Person = helper.ToPointer(converter.ConvertPersonView(*resp.Person))
+	}
+
+	return canonical, nil
+}

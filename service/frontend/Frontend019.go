@@ -192,3 +192,11 @@ func (receiver *Frontend019) ParseGetPrivateMessagesRequest(request *http.Reques
 func (receiver *Frontend019) BuildGetPrivateMessagesResponse(resp *lemmyResponse.GetPrivateMessagesResponse) any {
 	return resp
 }
+
+func (receiver *Frontend019) ParseResolveObjectRequest(request *http.Request) (*lemmyRequest.ResolveObjectRequest, error) {
+	return helper.ParseRequestQuery[lemmyRequest.ResolveObjectRequest](request)
+}
+
+func (receiver *Frontend019) BuildResolveObjectResponse(resp *lemmyResponse.ResolveObjectResponse) any {
+	return resp
+}

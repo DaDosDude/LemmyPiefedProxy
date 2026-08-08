@@ -98,4 +98,7 @@ type Frontend interface {
 
 	ParseGetPrivateMessagesRequest(request *http.Request) (*lemmyRequest.GetPrivateMessagesRequest, error)
 	BuildGetPrivateMessagesResponse(resp *lemmyResponse.GetPrivateMessagesResponse) any
+
+	ParseResolveObjectRequest(request *http.Request) (*lemmyRequest.ResolveObjectRequest, error)
+	BuildResolveObjectResponse(resp *lemmyResponse.ResolveObjectResponse) any
 }

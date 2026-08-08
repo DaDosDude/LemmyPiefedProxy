@@ -28,6 +28,7 @@ func init() {
 	AppRouter.AddRoute(newRoute("/user/replies", router.HttpMethodGet, userController.GetReplies))
 	AppRouter.AddRoute(newRoute("/private_message/list", router.HttpMethodGet, userController.GetPrivateMessages))
 	AppRouter.AddRoute(newRoute("/site", router.HttpMethodGet, siteController.Site))
+	AppRouter.AddRoute(newRoute("/resolve_object", router.HttpMethodGet, siteController.ResolveObject))
 	AppRouter.AddRoute(newRoute("/post/list", router.HttpMethodGet, postController.GetPosts))
 	AppRouter.AddRoute(newRoute("/post", router.HttpMethodGet, postController.GetPost))
 	AppRouter.AddRoute(newRoute("/post/like", router.HttpMethodPost, postController.LikePost))

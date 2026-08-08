@@ -71,4 +71,11 @@ type Backend interface {
 	GetPersonMentions(request *lemmyRequest.GetPersonMentionsRequest, headers http.Headers) (*lemmyResponse.GetPersonMentionsResponse, error)
 	GetReplies(request *lemmyRequest.GetRepliesRequest, headers http.Headers) (*lemmyResponse.GetRepliesResponse, error)
 	GetPrivateMessages(request *lemmyRequest.GetPrivateMessagesRequest, headers http.Headers) (*lemmyResponse.GetPrivateMessagesResponse, error)
+
+	// ResolveObject looks up a fediverse handle or ActivityPub URL
+	// (e.g. "!community@instance.tld" or "https://instance.tld/c/name")
+	// and returns whichever of comment/post/community/person it
+	// resolved to. lemmyBB uses this to resolve every community listed
+	// in an admin's lemmybb_categories.hjson on the frontpage.
+	ResolveObject(request *lemmyRequest.ResolveObjectRequest, headers http.Headers) (*lemmyResponse.ResolveObjectResponse, error)
 }

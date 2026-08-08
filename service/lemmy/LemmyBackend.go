@@ -192,3 +192,7 @@ func (receiver *LemmyBackend) GetReplies(request *lemmyRequest.GetRepliesRequest
 func (receiver *LemmyBackend) GetPrivateMessages(request *lemmyRequest.GetPrivateMessagesRequest, headers appHttp.Headers) (*lemmyResponse.GetPrivateMessagesResponse, error) {
 	return defaultHandler[lemmyResponse.GetPrivateMessagesResponse](receiver.client, "/private_message/list", router.HttpMethodGet, request, headers)
 }
+
+func (receiver *LemmyBackend) ResolveObject(request *lemmyRequest.ResolveObjectRequest, headers appHttp.Headers) (*lemmyResponse.ResolveObjectResponse, error) {
+	return defaultHandler[lemmyResponse.ResolveObjectResponse](receiver.client, "/resolve_object", router.HttpMethodGet, request, headers)
+}

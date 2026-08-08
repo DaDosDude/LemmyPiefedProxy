@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"LemmyBeProxy/helper"
 	"LemmyBeProxy/http"
 	"LemmyBeProxy/service/backend"
 	"LemmyBeProxy/service/frontend"
@@ -30,4 +31,18 @@ func (receiver *SiteController) Site(request *http.Request) (*http.Response, err
 	}
 
 	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildGetSiteResponse(resp)}, nil
+}
+
+func (receiver *SiteController) ResolveObject(request *http.Request) (*http.Response, error) {
+	reqDto, err := receiver.frontend.ParseResolveObjectRequest(request)
+	if err != nil {
+		return helper.ConvertValidationErrorsToResponse(err), nil
+	}
+
+	resp, err := receiver.backend.ResolveObject(reqDto, request.Headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Response{StatusCode: goHttp.StatusOK, Body: receiver.frontend.BuildResolveObjectResponse(resp)}, nil
 }
