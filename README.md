@@ -83,10 +83,12 @@ curl -s "https://your-domain.example/api/v3/site" | head -c 200
   to every route, not endpoint-specific
 - Lemmy 0.17.x wire format (e.g. lemmyBB) — Post, Comment, Community,
   User, Search, and Site endpoints, all verified against Lemmy's real
-  0.17.2 source. `pictrs/image` needs no version-specific handling at
-  all and works as-is — confirmed directly against lemmyBB's own upload
-  code, which uses the identical field name and response shape. That's
-  full 0.17.x coverage of every endpoint this proxy implements.
+  0.17.2 source *and* confirmed end-to-end against the real, official,
+  unmodified lemmyBB client — not just source-level checking. `pictrs/image`
+  needs no version-specific handling at all and works as-is — confirmed
+  directly against lemmyBB's own upload code, which uses the identical
+  field name and response shape. That's full 0.17.x coverage of every
+  endpoint this proxy implements.
 
 **Endpoints implemented and tested against a live Piefed instance:**
 `user/login`, `user/unread_count`, `user`, `user/block`,
@@ -127,6 +129,32 @@ deletion, email verification, admin tools, custom emoji.
 - 0.17.x comment responses don't echo back a client's `form_id` (used
   for optimistic-UI correlation) — accepted on requests, not threaded
   through to responses yet.
+
+**Real Rust-client interop lessons**, found by testing against the
+actual, official, unmodified lemmyBB — not just checking source-level
+struct shapes, which alone wasn't enough to catch these:
+- Timestamps must not carry a timezone suffix for 0.17.x — real Lemmy
+  0.17.x uses `chrono::NaiveDateTime` (no timezone concept) throughout,
+  and its deserializer errors on one if present. See
+  `helper.StripTimezoneSuffixes`.
+- `Option<T>` fields in Rust's `#[derive(Deserialize)]` still require
+  the JSON *key* to be present (as `null`) unless the struct opts into
+  `#[serde(default)]`, which none of Lemmy's real structs do — a missing
+  key isn't the same as a `null` value here. Affects every 0.17-shaped
+  type with an optional field.
+- `RegistrationMode` is the one enum in Lemmy 0.17.2 with
+  `#[serde(rename_all = "lowercase")]` — its wire values are lowercase,
+  unlike every other enum in the API, which uses standard PascalCase.
+- A response's `Content-Length` header needs to be set explicitly —
+  without it, Go's server defaults to `Transfer-Encoding: chunked`,
+  which Rust's `reqwest` (lemmyBB's HTTP client) read as truncated even
+  though `curl` read the identical response correctly. See
+  `WriteHttpResponse`.
+- A required timestamp field populated with a placeholder empty string
+  (rather than real or reasonably-derived data) fails outright on a
+  strict Rust deserializer — `Site.LastRefreshedAt` was previously left
+  as `""` with a `// todo`; it now derives from the ActivityPub actor's
+  own `updated`/`published` timestamp instead. See `ConvertSite`.
 
 ## Environment variables
 
